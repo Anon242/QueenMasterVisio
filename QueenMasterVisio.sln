@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueenMasterVisio", "QueenMasterVisio\QueenMasterVisio.csproj", "{CA6FB57F-39D3-4C09-A9D3-7C48B1BCE23D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CA6FB57F-39D3-4C09-A9D3-7C48B1BCE23D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA6FB57F-39D3-4C09-A9D3-7C48B1BCE23D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA6FB57F-39D3-4C09-A9D3-7C48B1BCE23D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA6FB57F-39D3-4C09-A9D3-7C48B1BCE23D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9B3A2B0A-6D68-4DF8-8796-C52FBC3EC7C7}
+	EndGlobalSection
+EndGlobal
