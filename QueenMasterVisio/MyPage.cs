@@ -942,25 +942,31 @@ namespace QueenMasterVisio
 			Visio.Shape shield = null;
 			List<Visio.Shape> devices = new List<Visio.Shape>();
 
-			foreach (Visio.Shape shape in page.Layers.ItemU["Plan"].Page.Shapes)
+            if (!WireService.wires.Any(w => w.name == activePlanCode && w.isWire))
+            {
+                MessageBox.Show("Ошибка слоя","Ошибка",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                return;
+            }
+
+            var selection = page.CreateSelection(Visio.VisSelectionTypes.visSelTypeByLayer,Visio.VisSelectMode.visSelModeSkipSuper,
+			page.Layers.ItemU[activePlanCode]);
+
+			// Ищем фигуры
+            foreach (Visio.Shape shape in selection)
 			{
-				if (shape.Name.Contains("Device"))
+				if (shape.Name.Contains("Device") || shape.Name.Contains("Light") || shape.Name.Contains("Camera") || shape.Name.Contains("Sound"))
 				{
-					if (GetShapeProperty(shape, activePlanCode))
-					{
-						devices.Add(shape);
-					}
-
+                        devices.Add(shape);
 				}
-				else if (shape.Name.Contains("Shield"))
-				{
-					shield = shape;
-				}
-
-
 			}
+            selection.DeselectAll();
+            // Теперь ищем щит
+            foreach (Visio.Shape shape in page.Shapes)
+                if (shape.Name.Contains("Shield"))
+                    shield = shape;
 
-			if (shield == null)
+
+            if (shield == null)
 			{
 				MessageBox.Show("Добавьте 1 щит из фигур",
 			   "Щит не найден",
@@ -977,55 +983,12 @@ namespace QueenMasterVisio
 				return;
 			}
 
-            
 			foreach (Visio.Shape shape in devices)
 			{
 				if (!checkConnetctedLinesInDevice(page, shape))
 				{
 					CreateAndGlueConnector(page, shield, shape, activePlanCode);
                 }
-			}
-            
-            
-			
-		}
-		public static bool GetShapeProperty(Visio.Shape shape, string propertyName)
-		{
-			try
-			{
-				if (shape.SectionExists[(short)VisSectionIndices.visSectionProp, 0] == 0)
-					return false;
-
-				for (short i = 0; i < shape.RowCount[(short)VisSectionIndices.visSectionProp]; i++)
-				{
-					Cell labelCell = shape.CellsSRC[
-						(short)VisSectionIndices.visSectionProp,
-						i,
-						(short)VisCellIndices.visCustPropsLabel];
-
-
-
-					if (labelCell.FormulaU.Contains(propertyName))
-					{
-						Cell valueCell = shape.CellsSRC[
-							(short)VisSectionIndices.visSectionProp,
-							i,
-							(short)VisCellIndices.visCustPropsValue];
-
-						string result = valueCell.FormulaU;
-
-						Marshal.ReleaseComObject(labelCell);
-						Marshal.ReleaseComObject(valueCell);
-						return result[6] == '0';
-					}
-					Marshal.ReleaseComObject(labelCell);
-				}
-				return false;
-			}
-			catch (COMException ex)
-			{
-				Console.WriteLine($"Ошибка доступа к свойствам: {ex.Message}");
-				return false;
 			}
 		}
 		public static void CreateAndGlueConnector(Page page, Visio.Shape fromShape, Visio.Shape toShape, string layerName)
