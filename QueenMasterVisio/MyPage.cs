@@ -702,8 +702,36 @@ namespace QueenMasterVisio
 								{
 									if (shape.Name.Contains("WireName"))
 									{
-										shape.Text = wire.comment + " " + wire.defaultCable + " " + wire.voltage; 
+										// Нашли									
+                                        shape.Text = wire.comment + " " + wire.defaultCable + " " + wire.voltage; 
                                         shape.CellsU["Char.Color"].FormulaU = wire.color;
+
+										// Если мы на странице света, ищем RGB что бы указать их как UTP
+										if(layer.Name == "Lx")
+                                        {
+											List<string> lxNames = new List<string>();
+                                            foreach (Visio.Shape shape1 in defNewPage.Shapes)
+                                            {
+                                                if (shape1.Name.Contains("Light"))
+                                                {
+                                                    if (shape1.CellExists["Prop.Type", (short)Visio.VisExistsFlags.visExistsAnywhere] != 0)
+													{
+														// Нашли RGB
+														if(shape1.CellsU["Prop.Type"].FormulaU.Replace("\"", "") == "INDEX(2,Prop.Type.Format)")
+														{
+															lxNames.Add("L" + shape1.CellsU["Prop.Number"].FormulaU.Replace("\"", ""));
+                                                        }
+                                                    }
+                                                }
+                                            }
+											// Есть хоть одно
+											if(lxNames.Count != 0)
+											{
+												shape.Text += '\n';
+                                                shape.Text += string.Join(", ", lxNames);
+												shape.Text += " - UTP Cat 5E";
+                                            }
+                                        }
                                         break;
 									}
 								}
