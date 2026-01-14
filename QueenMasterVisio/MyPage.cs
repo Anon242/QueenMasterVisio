@@ -311,14 +311,15 @@ namespace QueenMasterVisio
                 double bottom = -offset;
                 double top = pageHeight + offset;
 
+                string table = CreateSimpleTable(result);
                 Visio.Shape borderText = page.DrawRectangle(right, top, right * 2, bottom);
-				string table = CreateSimpleTable(result);
-                borderText.Text  = "Таблица создана: " + DateTime.Today.ToString("d") + '\n' + table + '\n' +"Всего: "+ result.Split('\n').Length;
+
+                borderText.Text  = "Таблица создана: " + DateTime.Today.ToString("d") + '\n' + table + '\n' +"Всего: "+ (result.Split('\n').Length-2);
                 borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionObject, (short)Visio.VisRowIndices.visRowFill, (short)Visio.VisCellIndices.visFillPattern].FormulaU = "0";
                 borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionObject, (short)Visio.VisRowIndices.visRowLine, (short)Visio.VisCellIndices.visLinePattern].FormulaU = "0";
                 borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionCharacter, (short)Visio.VisRowIndices.visRowCharacter, (short)Visio.VisCellIndices.visCharacterSize].FormulaU = "9 pt";
                 borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionParagraph, (short)Visio.VisRowIndices.visRowParagraph, (short)Visio.VisCellIndices.visHorzAlign].FormulaU = "0";
-				borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionCharacter,(short)Visio.VisRowIndices.visRowCharacter,(short)Visio.VisCellIndices.visCharacterFont].FormulaU = "51";
+				borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionCharacter,(short)Visio.VisRowIndices.visRowCharacter,(short)Visio.VisCellIndices.visCharacterFont].FormulaU = "FONT(\"Cascadia Code\")";
                 //MessageBox.Show(result, "Всего кабелей: " + result.Split('\n').Length, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             else
