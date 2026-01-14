@@ -223,53 +223,232 @@ namespace QueenMasterVisio
 			}
 			else if (buttonId == "SetHyperLinks")
 			{
-				// id and array 
-				List<KeyValuePair<Visio.Page, string[]>> pagesPair = new List<KeyValuePair<Visio.Page, string[]>>();
-				foreach (Page _page in page.Application.ActiveDocument.Pages)
-				{
-					// Если активная страница - пропускаем
-					if (_page?.Name == page.Name) continue;
-
-					// ЧЕК ПО УСТРОЙСТВАМ
-					Regex regex = new Regex(@"^G\d");
-					if (!regex.IsMatch(_page.Name)) continue;
-					//string gCode = page.Name.Split(' ').First();
-					// Номера 
-					pagesPair.Add(new KeyValuePair<Visio.Page, string[]>(_page, extractGValues(_page.Name)));
-					Debug.WriteLine(string.Join(",", extractGValues(_page.Name)));
-
-				}
-				Debug.WriteLine("Получили");
-
-				// Теперь пройдемся по девайсам 
-				foreach (Visio.Shape shape in page.Shapes)
-				{
-					if (!shape.Name.Contains("Device")) continue;
-
-					// Если существует 
-					if (shape.CellExists["Prop.Number", (short)Visio.VisExistsFlags.visExistsAnywhere] != 0)
-					{
-						string nameValue = shape.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
-						Debug.WriteLine("девайс " + nameValue);
-
-						// Если есть совпадение в pagesPair values
-						foreach (KeyValuePair<Visio.Page, string[]> keyvalue in pagesPair)
-						{
-							if (keyvalue.Value.Contains("G" + nameValue))
-							{
-								shape.AddHyperlink().SubAddress = keyvalue.Key.NameU;
-								Debug.WriteLine(shape.Name + ": '" + keyvalue.Key.Name + "'");
-                                break;
-							}
-						}
-
-
-					}
-				}
-			}
+				SetHyperLinks(page);
+            }
 			else if (buttonId == "LookDevices")
 			{
                 explorer.LookDevices(page);
+            }
+			else if(buttonId == "LookDevicesOnPlan")
+			{
+				// Получаем соединения с плана находясь на странице устройства 
+				LookDevicesOnPlan(page);
+            }
+        }
+
+		public void LookDevicesOnPlan(Page page)
+		{
+			
+			string [] pageNameCodeArray = extractGValues(page.Name);
+			// Проверяем что это вообще девайс и получаем его G код
+			if(pageNameCodeArray.Length == 0)
+			{
+                MessageBox.Show("Алгоритм не определил сигнатуру устройства","Страница не распознана",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                return;
+			}
+
+            Visio.Page targetPage = null;
+            string result = "Designation;From;Way;To;Type;Voltage;Length;Note\r\n";
+            string pageNameCode = pageNameCodeArray[0].Replace("G", "");
+
+            // Сначала ищем и получаем план в котором будет находится наш номер
+            foreach (Page searchPage in page.Document.Pages)
+			{
+				if(Tools.CellExistsCheck(searchPage, "User.pageCode"))
+				{
+					// Нашли план
+					if (Tools.CellFormulaGet(searchPage, "User.pageCode") == "Plan")
+					{
+                        // Ищем объект девайса
+                        foreach (Visio.Shape shape in searchPage.Shapes)
+                        {
+                            if (!shape.Name.Contains("Device")) continue;
+
+                            // Если существует 
+                            if (Tools.CellExistsCheck(shape, "Prop.Number"))
+                            {
+                                string nameValue = shape.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
+								// Нашли совпадение
+                                if(nameValue == pageNameCode)
+								{
+                                    targetPage = searchPage;
+									Debug.WriteLine("НАШЛИ nameValue == pageNameCode: " + nameValue == pageNameCode);
+                                    break;
+								}
+                            }
+                        }
+
+						// Получили страницу плана, теперь получим все соединения 
+						if(targetPage != null)
+						{
+							string text = CableSchedule.Generate(targetPage);
+							
+							// Вытщаим из таблицы только строки с нашим девайсом
+							foreach (string col in text.Split('\n'))
+							{
+								if (col.Contains("G" + pageNameCode+";") || col.Contains("G" + pageNameCode + " "))
+								{
+									result += col + '\n';
+                                }
+							}
+							targetPage = null;
+							
+                        }
+
+                    }
+				}
+
+			}
+            // Вот тут надо вставить прям на страничку текст
+            if (result.Split('\n').Length > 1)
+            {
+
+                double pageWidth = page.PageSheet.CellsU["PageWidth"].ResultIU;
+                double pageHeight = page.PageSheet.CellsU["PageHeight"].ResultIU;
+                double offset = 2.0 * 0.0393701;
+                double left = -offset;
+                double right = pageWidth + offset;
+                double bottom = -offset;
+                double top = pageHeight + offset;
+
+                Visio.Shape borderText = page.DrawRectangle(right, top, right * 2, bottom);
+				string table = CreateSimpleTable(result);
+                borderText.Text  = "Таблица создана: " + DateTime.Today.ToString("d") + '\n' + table + '\n' +"Всего: "+ result.Split('\n').Length;
+                borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionObject, (short)Visio.VisRowIndices.visRowFill, (short)Visio.VisCellIndices.visFillPattern].FormulaU = "0";
+                borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionObject, (short)Visio.VisRowIndices.visRowLine, (short)Visio.VisCellIndices.visLinePattern].FormulaU = "0";
+                borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionCharacter, (short)Visio.VisRowIndices.visRowCharacter, (short)Visio.VisCellIndices.visCharacterSize].FormulaU = "9 pt";
+                borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionParagraph, (short)Visio.VisRowIndices.visRowParagraph, (short)Visio.VisCellIndices.visHorzAlign].FormulaU = "0";
+				borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionCharacter,(short)Visio.VisRowIndices.visRowCharacter,(short)Visio.VisCellIndices.visCharacterFont].FormulaU = "51";
+                //MessageBox.Show(result, "Всего кабелей: " + result.Split('\n').Length, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else
+            {
+                MessageBox.Show("Не получилось найти объект: " + pageNameCode, "Объект не найден", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+        }
+		// Генератор таблички из csv от ИИ
+        public string CreateSimpleTable(string csvData)
+        {
+            string[] lines = csvData.Split('\n');
+            if (lines.Length == 0) return string.Empty;
+
+            string[] headers = lines[0].Split(';');
+            int[] columnWidths = new int[headers.Length];
+
+            // Определяем ширину колонок
+            for (int i = 0; i < headers.Length; i++)
+            {
+                columnWidths[i] = headers[i].Length;
+            }
+
+            for (int row = 1; row < lines.Length; row++)
+            {
+                string[] columns = lines[row].Split(';');
+                for (int col = 0; col < columns.Length && col < columnWidths.Length; col++)
+                {
+                    columnWidths[col] = Math.Max(columnWidths[col], columns[col].Trim().Length);
+                }
+            }
+
+            StringBuilder table = new StringBuilder();
+
+            // Заголовок с разделителем
+            table.Append("┌");
+            for (int i = 0; i < columnWidths.Length; i++)
+            {
+                table.Append(new string('─', columnWidths[i] + 2));
+                if (i < columnWidths.Length - 1) table.Append("┬");
+            }
+            table.Append("┐\n");
+
+            table.Append("│");
+            for (int i = 0; i < headers.Length; i++)
+            {
+                table.Append($" {headers[i].PadRight(columnWidths[i])} │");
+            }
+            table.Append("\n");
+
+            // Разделитель
+            table.Append("├");
+            for (int i = 0; i < columnWidths.Length; i++)
+            {
+                table.Append(new string('─', columnWidths[i] + 2));
+                if (i < columnWidths.Length - 1) table.Append("┼");
+            }
+            table.Append("┤\n");
+
+            // Данные
+            for (int row = 1; row < lines.Length; row++)
+            {
+                string[] columns = lines[row].Split(';');
+                table.Append("│");
+
+                for (int col = 0; col < columnWidths.Length; col++)
+                {
+                    string value = col < columns.Length ? columns[col].Trim() : "";
+                    table.Append($" {value.PadRight(columnWidths[col])} │");
+                }
+                table.Append("\n");
+            }
+
+            // Нижняя граница
+            table.Append("└");
+            for (int i = 0; i < columnWidths.Length; i++)
+            {
+                table.Append(new string('─', columnWidths[i] + 2));
+                if (i < columnWidths.Length - 1) table.Append("┴");
+            }
+            table.Append("┘");
+
+            return table.ToString();
+        }
+        private void SetHyperLinks(Page page)
+		{
+
+            // id and array 
+            List<KeyValuePair<Visio.Page, string[]>> pagesPair = new List<KeyValuePair<Visio.Page, string[]>>();
+            foreach (Page _page in page.Application.ActiveDocument.Pages)
+            {
+                // Если активная страница - пропускаем
+                if (_page?.Name == page.Name) continue;
+
+                // ЧЕК ПО УСТРОЙСТВАМ
+                Regex regex = new Regex(@"^G\d");
+                if (!regex.IsMatch(_page.Name)) continue;
+                //string gCode = page.Name.Split(' ').First();
+                // Номера 
+                pagesPair.Add(new KeyValuePair<Visio.Page, string[]>(_page, extractGValues(_page.Name)));
+                Debug.WriteLine(string.Join(",", extractGValues(_page.Name)));
+
+            }
+            Debug.WriteLine("Получили");
+
+            // Теперь пройдемся по девайсам 
+            foreach (Visio.Shape shape in page.Shapes)
+            {
+                if (!shape.Name.Contains("Device")) continue;
+
+                // Если существует 
+                if (shape.CellExists["Prop.Number", (short)Visio.VisExistsFlags.visExistsAnywhere] != 0)
+                {
+                    string nameValue = shape.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
+                    Debug.WriteLine("девайс " + nameValue);
+
+                    // Если есть совпадение в pagesPair values
+                    foreach (KeyValuePair<Visio.Page, string[]> keyvalue in pagesPair)
+                    {
+                        if (keyvalue.Value.Contains("G" + nameValue))
+                        {
+                            shape.AddHyperlink().SubAddress = keyvalue.Key.NameU;
+                            Debug.WriteLine(shape.Name + ": '" + keyvalue.Key.Name + "'");
+                            break;
+                        }
+                    }
+
+
+                }
             }
         }
         public void SomeMethod()

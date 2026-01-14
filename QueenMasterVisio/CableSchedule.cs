@@ -48,7 +48,9 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
         public static string Generate(Visio.Page page)
         {
             // Проверка на дурака
-            if (MyPage.activePageCode != "Plan")
+            if (!Tools.CellExistsCheck(page, "User.pageCode"))
+                return null;
+            if (Tools.CellFormulaGet(page, "User.pageCode") != "Plan")
                 return null;
 
             string result = "Designation;From;Way;To;Type;Voltage;Length;Note\r\n";

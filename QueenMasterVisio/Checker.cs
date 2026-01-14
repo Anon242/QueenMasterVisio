@@ -90,9 +90,6 @@ namespace QueenMasterVisio
             }
             if (a != "")
                 MessageBox.Show(a, "Всего устройств: "+ shapeCount, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            else
-                MessageBox.Show("Норм все", "Всего устройств: " + shapeCount, MessageBoxButtons.OK);
-
         }
     
         // Получаем количества ожидаемых подключений по каждому девайсу
