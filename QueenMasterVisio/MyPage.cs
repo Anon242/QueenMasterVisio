@@ -236,6 +236,7 @@ namespace QueenMasterVisio
             }
         }
 
+
 		public void LookDevicesOnPlan(Page page)
 		{
 			
@@ -250,6 +251,7 @@ namespace QueenMasterVisio
             Visio.Page targetPage = null;
             string result = "Designation;From;Way;To;Type;Voltage;Length;Note\r\n";
             string pageNameCode = pageNameCodeArray[0].Replace("G", "");
+			Visio.Shape targetShape = null;
 
             // Сначала ищем и получаем план в котором будет находится наш номер
             foreach (Page searchPage in page.Document.Pages)
@@ -260,33 +262,36 @@ namespace QueenMasterVisio
 					if (Tools.CellFormulaGet(searchPage, "User.pageCode") == "Plan")
 					{
                         // Ищем объект девайса
-                        foreach (Visio.Shape shape in searchPage.Shapes)
-                        {
-                            if (!shape.Name.Contains("Device")) continue;
+                        
+                            foreach (Visio.Shape shape in searchPage.Shapes)
+                            {
+                                if (!shape.Name.Contains("Device") && !shape.Name.Contains("Shield")) continue;
 
                             // Если существует 
                             if (Tools.CellExistsCheck(shape, "Prop.Number"))
-                            {
-                                string nameValue = shape.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
-								// Нашли совпадение
-                                if(nameValue == pageNameCode)
-								{
-                                    targetPage = searchPage;
-									Debug.WriteLine("НАШЛИ nameValue == pageNameCode: " + nameValue == pageNameCode);
-                                    break;
-								}
+                                {
+                                    string nameValue = shape.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
+								Debug.WriteLine(nameValue);
+                                    // Нашли совпадение
+                                    if (nameValue == pageNameCode)
+                                    {
+										targetShape = shape;
+                                        targetPage = searchPage;
+                                        Debug.WriteLine("НАШЛИ nameValue == pageNameCode: " + nameValue == pageNameCode);
+                                        break;
+                                    }
+                                }
                             }
-                        }
 
-						// Получили страницу плана, теперь получим все соединения 
-						if(targetPage != null)
+                        // Получили страницу плана, теперь получим все соединения 
+                        if (targetPage != null)
 						{
 							string text = CableSchedule.Generate(targetPage);
-							
-							// Вытщаим из таблицы только строки с нашим девайсом
-							foreach (string col in text.Split('\n'))
+
+                            // Вытщаим из таблицы только строки с нашим девайсом
+                            foreach (string col in text.Split('\n'))
 							{
-								if (col.Contains("G" + pageNameCode+";") || col.Contains("G" + pageNameCode + " "))
+								if ((col.Contains("G" + pageNameCode+";") || col.Contains("G" + pageNameCode + " ")))
 								{
 									result += col + '\n';
                                 }
@@ -300,7 +305,7 @@ namespace QueenMasterVisio
 
 			}
             // Вот тут надо вставить прям на страничку текст
-            if (result.Split('\n').Length > 1)
+            if (result.Split('\n').Length > 2)
             {
 
                 double pageWidth = page.PageSheet.CellsU["PageWidth"].ResultIU;
@@ -885,18 +890,25 @@ namespace QueenMasterVisio
 										// Нашли									
                                         shape.Text = wire.comment + " " + wire.defaultCable + " " + wire.voltage; 
                                         shape.CellsU["Char.Color"].FormulaU = wire.color;
+										Debug.WriteLine("Мы написали");
+                                        // Если мы на странице света, ищем RGB что бы указать их как UTP
+                                        Debug.WriteLine("layer.Name " + layer.Name);
 
-										// Если мы на странице света, ищем RGB что бы указать их как UTP
-										if(layer.Name == "Lx")
+                                        if (layer.Name == "Lx")
                                         {
-											List<string> lxNames = new List<string>();
+                                            Debug.WriteLine("Опредилили " + layer.Name);
+
+                                            List<string> lxNames = new List<string>();
                                             foreach (Visio.Shape shape1 in defNewPage.Shapes)
                                             {
                                                 if (shape1.Name.Contains("Light"))
                                                 {
-                                                    if (shape1.CellExists["Prop.Type", (short)Visio.VisExistsFlags.visExistsAnywhere] != 0)
+                                                    Debug.WriteLine("СВЕТ " + shape1.Name);
+
+                                                    if (Tools.CellExistsCheck(shape1, "Prop.Type"))
 													{
 														// Нашли RGB
+														Debug.WriteLine(shape1.CellsU["Prop.Type"].FormulaU);
 														if(shape1.CellsU["Prop.Type"].FormulaU.Replace("\"", "") == "INDEX(2,Prop.Type.Format)")
 														{
 															lxNames.Add("L" + shape1.CellsU["Prop.Number"].FormulaU.Replace("\"", ""));
@@ -909,7 +921,7 @@ namespace QueenMasterVisio
 											{
 												shape.Text += '\n';
                                                 shape.Text += string.Join(", ", lxNames);
-												shape.Text += " - UTP Cat 5E";
+												shape.Text += " - 4 x 1.5";
                                             }
                                         }
                                         break;

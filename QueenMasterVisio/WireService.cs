@@ -20,7 +20,7 @@ namespace QueenMasterVisio
             new Wire(4,"Dx",      true, "12v wires","THEMEGUARD(RGB(255,235,0))",           false, "3 x 1.5",   "12v"       ),
             new Wire(5,"Cx",      true, "12v signal wires","THEMEGUARD(RGB(255,192,0))",    true,  "3 x 1.5",    "12v"      ),
             new Wire(6,"Sx",      true, "Sensor wires","THEMEGUARD(RGB(0,176,80))",         true,  "UTP Cat 5E", "12v"      ),
-            new Wire(7,"Yx",      true, "Emergency buttons","THEMEGUARD(RGB(185,185,185))", false, "3 x 0.75",   "12v"      ),
+            new Wire(7,"Yx",      true, "Emergency buttons","THEMEGUARD(RGB(185,185,185))", false, "3 x 1.5",   "12v"      ),
             new Wire(8,"Vx",      true, "CCTV wires","THEMEGUARD(RGB(204,194,217))",        false, "UTP Cat 5E","36v-57v"   ),
             new Wire(9,"Lx",      true, "Light wires","THEMEGUARD(RGB(0,32,96))",           false, "3 x 1.5",   "12v"       ),
             new Wire(10,"Ax",     true, "Sound wires","THEMEGUARD(RGB(234,112,13))",        false, "2 x 1.5",   "24v"       ),
