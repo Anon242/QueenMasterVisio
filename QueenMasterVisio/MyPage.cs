@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -233,6 +234,35 @@ namespace QueenMasterVisio
 			{
 				// Получаем соединения с плана находясь на странице устройства 
 				LookDevicesOnPlan(page);
+            }
+			else if(buttonId == "CreateNewDevice")
+			{
+                // Создать новый девайс
+				Page activePage = page;
+                Page newPage = page.Document.Pages.Add();
+                app.ActiveWindow.Page = activePage;
+                short pageIndex = (short)(page.Document.Pages.Count - 1);
+                newPage.Name = explorer.ShowRenameDialog("G" + pageIndex);
+
+				if (newPage.Name[0] == 'G')
+				{
+                    // Делаем что она была перед первым светом
+                    foreach (Page _page in page.Document.Pages)
+                    {
+                        Regex regexLight = new Regex(@"^L\d");
+                        if (regexLight.IsMatch(_page.Name))
+                        {
+                            newPage.Index = _page.Index;
+                            break;
+                        }
+                    }
+				}
+				else
+				{
+                    newPage.Index = (short)(pageIndex);
+                }
+
+                app.ActiveWindow.Page = newPage;
             }
         }
 

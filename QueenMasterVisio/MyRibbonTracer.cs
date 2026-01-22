@@ -47,6 +47,9 @@ namespace QueenMasterVisio
             <group id=""MyGroup6"" label=""Создание"">
                 <button id=""btnCreatePlan"" label=""Создать из этой страницы план"" size=""normal"" onAction=""OnButtonClick"" imageMso=""ZoomOnePage""/>
                 <button id=""btnUpdatePage"" label=""Обновить страницу"" size=""normal"" onAction=""OnButtonClick"" imageMso=""AutoFormatChange""/>
+
+                <button id=""btnCreateNewDevice"" label=""Создать новый девайс"" size=""large"" onAction=""OnButtonClick"" imageMso=""OrganizationChartSelectLevel""/>
+
             </group>
             <group id=""MyGroup61"" label=""Блокировка"">
                 <button id=""btnLock"" label=""Заблокировать страницу"" size=""large"" onAction=""OnButtonClick"" imageMso=""ColumnActionsReadOnly""/>

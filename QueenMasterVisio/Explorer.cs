@@ -684,7 +684,7 @@ namespace QueenMasterVisio
         }
 
 
-        private string ShowRenameDialog(string currentName)
+        public string ShowRenameDialog(string currentName)
         {
             using (var form = new Form())
             {
