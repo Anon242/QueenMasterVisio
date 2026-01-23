@@ -37,6 +37,20 @@ namespace QueenMasterVisio
             this.Application.PageAdded += new Visio.EApplication_PageAddedEventHandler(OnPageAdded);
             this.Application.PageChanged += new Visio.EApplication_PageChangedEventHandler(OnPageChanged);
 
+            AppDomain.CurrentDomain.UnhandledException += (s, args) =>
+            {
+                Exception ex = args.ExceptionObject as Exception;
+                string message = ex?.Message ?? "Неизвестная ошибка";
+                MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            };
+
+            // Обработчик для UI потоков
+            System.Windows.Forms.Application.ThreadException += (s, args) =>
+            {
+                Exception ex = args.Exception as Exception;
+                string message = ex?.Message ?? "Неизвестная ошибка";
+                MessageBox.Show(message + "\n UI", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            };
         }
 
         private void OnPageChanged(Page Page)
@@ -116,7 +130,11 @@ namespace QueenMasterVisio
             if (doc.Name.Contains(".vssx"))
                 return;
             // Explorer
-            CreateEmbeddedWindow();
+            // Создаем окно только если customWindow еще не существует или был удален
+            if (customWindow == null || pageExplorer == null || pageExplorer.IsDisposed)
+            {
+                CreateEmbeddedWindow();
+            }
 
             myPage = new MyPage(this.Application, doc.Name, pageExplorer);
             myRibbonTracer.SetMyPage(myPage);
