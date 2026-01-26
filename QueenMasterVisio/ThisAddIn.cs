@@ -1,6 +1,7 @@
 ﻿using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Visio;
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Office = Microsoft.Office.Core;
@@ -127,14 +128,11 @@ namespace QueenMasterVisio
         private void OnDocumentOpened(Document doc)
         {
             // Это скрипт на шаблонs открылся
-            if (doc.Name.Contains(".vssx"))
+            if (doc.Name.Contains(".vss"))
                 return;
             // Explorer
-            // Создаем окно только если customWindow еще не существует или был удален
-            if (customWindow == null || pageExplorer == null || pageExplorer.IsDisposed)
-            {
-                CreateEmbeddedWindow();
-            }
+            CreateEmbeddedWindow();
+            
 
             myPage = new MyPage(this.Application, doc.Name, pageExplorer);
             myRibbonTracer.SetMyPage(myPage);
