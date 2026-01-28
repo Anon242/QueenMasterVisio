@@ -337,25 +337,73 @@ namespace QueenMasterVisio
             // Вот тут надо вставить прям на страничку текст
             if (result.Split('\n').Length > 2)
             {
+                // result
+                string[] masterNamesStrings = { "Cable", "TerminalDel", "Terminal", "Remark" };
+                Visio.Master[] masters = { null, null, null, null };
 
-                double pageWidth = page.PageSheet.CellsU["PageWidth"].ResultIU;
-                double pageHeight = page.PageSheet.CellsU["PageHeight"].ResultIU;
-                double offset = 2.0 * 0.0393701;
-                double left = -offset;
-                double right = pageWidth + offset;
-                double bottom = -offset;
-                double top = pageHeight + offset;
+                for (int i = 0; i < masters.Length; i++)
+                {
+                    try
+                    {
+                        masters[i] = page.Document.Masters[masterNamesStrings[i]];
+                    }
+                    catch { }
+                }
 
-                string table = CreateSimpleTable(result);
-                Visio.Shape borderText = page.DrawRectangle(right, top, right * 2, bottom);
+                // Проверяем 4 важных элемента есть ли в образах
+                if (masters.All(m => m != null))
+                {
+                    Debug.WriteLine("Все образцы найдены в документе");
+                    Visio.Shape shapeOld = null;
 
-                borderText.Text  = "Таблица создана: " + DateTime.Today.ToString("d") + '\n' + table + '\n' +"Всего: "+ (result.Split('\n').Length-2);
-                borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionObject, (short)Visio.VisRowIndices.visRowFill, (short)Visio.VisCellIndices.visFillPattern].FormulaU = "0";
-                borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionObject, (short)Visio.VisRowIndices.visRowLine, (short)Visio.VisCellIndices.visLinePattern].FormulaU = "0";
-                borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionCharacter, (short)Visio.VisRowIndices.visRowCharacter, (short)Visio.VisCellIndices.visCharacterSize].FormulaU = "9 pt";
-                borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionParagraph, (short)Visio.VisRowIndices.visRowParagraph, (short)Visio.VisCellIndices.visHorzAlign].FormulaU = "0";
-				borderText.CellsSRC[(short)Visio.VisSectionIndices.visSectionCharacter,(short)Visio.VisRowIndices.visRowCharacter,(short)Visio.VisCellIndices.visCharacterFont].FormulaU = "FONT(\"Cascadia Code\")";
-                //MessageBox.Show(result, "Всего кабелей: " + result.Split('\n').Length, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+					string[] resultSplit = result.Split('\n');
+					double terminalWidth = 0;
+                    // Добавляем фигуру на страницу
+                    for (int i = 0; i < resultSplit.Length-2; i++)
+                    {
+                        Visio.Shape shape = page.Drop(masters[2], toPixel(50), toPixel(-50));
+						Tools.CellFormulaSet(shape,"Prop.name2","");
+
+						int terminalCount = 2;
+						if (resultSplit[i].Split(';')[4].Contains(" x "))
+						{
+							terminalCount = int.Parse(resultSplit[i].Split(';')[4].Split('x')[0]);
+                        }
+						for (int j = 0; j < terminalCount; j++)
+						{
+							if (shapeOld != null)
+							{
+								string shapeName = shape.NameU;
+								string shapeNameOld = shapeOld.NameU;
+								Debug.WriteLine(shapeNameOld);
+								// Разделитель к терминалу
+								if (shapeNameOld.Contains("Del"))
+								{
+									Tools.CellFormulaSet(shape, "PinX", $"=PNTX(LOCTOPAR(PNT({shapeNameOld}!Connections.X2,{shapeNameOld}!Connections.Y2),{shapeNameOld}!EventXFMod,EventXFMod))+3 pt");
+									Tools.CellFormulaSet(shape, "PinY", $"=PNTY(LOCTOPAR(PNT({shapeNameOld}!Connections.X2,{shapeNameOld}!Connections.Y2),{shapeNameOld}!EventXFMod,EventXFMod))+0 pt");
+									terminalWidth += 6;
+
+                                }
+								// Терминал к разделителю
+								else
+								{
+									Tools.CellFormulaSet(shape, "PinX", $"=PNTX(LOCTOPAR(PNT({shapeNameOld}!Connections.X2,{shapeNameOld}!Connections.Y2),{shapeNameOld}!EventXFMod,EventXFMod))+6 pt");
+									Tools.CellFormulaSet(shape, "PinY", $"=PNTY(LOCTOPAR(PNT({shapeNameOld}!Connections.X2,{shapeNameOld}!Connections.Y2),{shapeNameOld}!EventXFMod,EventXFMod))+0 pt");
+									terminalWidth += 12;
+
+                                }
+
+
+                            }
+							shapeOld = shape;
+						}
+                        // тут спавним кабель
+                        Visio.Shape shapeCable = page.Drop(masters[0], toPixel(50 + terminalWidth), toPixel(-130));
+						Tools.CellFormulaSet(shapeCable, "Prop.Row_1", "\"" + resultSplit[i].Split(';')[4] + "\"");
+						Tools.CellFormulaSet(shapeCable, "Prop.Row_2", "\"" + resultSplit[i].Split(';')[2] + "\"");
+
+                    }
+                }
             }
             else
             {
@@ -364,82 +412,12 @@ namespace QueenMasterVisio
             }
 
         }
-		// Генератор таблички из csv от ИИ
-        public string CreateSimpleTable(string csvData)
-        {
-            string[] lines = csvData.Split('\n');
-            if (lines.Length == 0) return string.Empty;
 
-            string[] headers = lines[0].Split(';');
-            int[] columnWidths = new int[headers.Length];
+		double toPixel(double num)
+		{
+			return num * (1/96);
+		}
 
-            // Определяем ширину колонок
-            for (int i = 0; i < headers.Length; i++)
-            {
-                columnWidths[i] = headers[i].Length;
-            }
-
-            for (int row = 1; row < lines.Length; row++)
-            {
-                string[] columns = lines[row].Split(';');
-                for (int col = 0; col < columns.Length && col < columnWidths.Length; col++)
-                {
-                    columnWidths[col] = Math.Max(columnWidths[col], columns[col].Trim().Length);
-                }
-            }
-
-            StringBuilder table = new StringBuilder();
-
-            // Заголовок с разделителем
-            table.Append("┌");
-            for (int i = 0; i < columnWidths.Length; i++)
-            {
-                table.Append(new string('─', columnWidths[i] + 2));
-                if (i < columnWidths.Length - 1) table.Append("┬");
-            }
-            table.Append("┐\n");
-
-            table.Append("│");
-            for (int i = 0; i < headers.Length; i++)
-            {
-                table.Append($" {headers[i].PadRight(columnWidths[i])} │");
-            }
-            table.Append("\n");
-
-            // Разделитель
-            table.Append("├");
-            for (int i = 0; i < columnWidths.Length; i++)
-            {
-                table.Append(new string('─', columnWidths[i] + 2));
-                if (i < columnWidths.Length - 1) table.Append("┼");
-            }
-            table.Append("┤\n");
-
-            // Данные
-            for (int row = 1; row < lines.Length; row++)
-            {
-                string[] columns = lines[row].Split(';');
-                table.Append("│");
-
-                for (int col = 0; col < columnWidths.Length; col++)
-                {
-                    string value = col < columns.Length ? columns[col].Trim() : "";
-                    table.Append($" {value.PadRight(columnWidths[col])} │");
-                }
-                table.Append("\n");
-            }
-
-            // Нижняя граница
-            table.Append("└");
-            for (int i = 0; i < columnWidths.Length; i++)
-            {
-                table.Append(new string('─', columnWidths[i] + 2));
-                if (i < columnWidths.Length - 1) table.Append("┴");
-            }
-            table.Append("┘");
-
-            return table.ToString();
-        }
         private void SetHyperLinks(Page page)
 		{
 
@@ -1428,13 +1406,16 @@ namespace QueenMasterVisio
 				newLayerDetect(shape.Application.ActivePage);
 			}
 
-			if (banOverdrawingLine)
+            if (banOverdrawingLine)
 			{
 				if (Checker.isLine(shape))
 				{
                     Tools.CellFormulaSet(shape, "ConFixedCode", "2");
                 }
             }
+
+			// Вот тут сканим добавленные трасеры на девайсы
+
 		}
 
 		// onUserShape - false: Значит линия создана была автоматически

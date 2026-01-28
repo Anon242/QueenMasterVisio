@@ -102,7 +102,7 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
                                 f4 = "J" + nameValueTo;
                             // sech
                             string f6 = wire.defaultCable == null ? "" : wire.defaultCable;
-                            if (wire.name == "Lx" && connectedShapeTo.CellsU["Prop.Type"].ResultStrU[""] == "RGB")
+                            if (wire.name == "Lx" && Tools.CellExistsCheck(connectedShapeTo, "Prop.Type") && connectedShapeTo.CellsU["Prop.Type"].ResultStrU[""] == "RGB")
                             {
                                 f6 = "4 x 1.5";
                             }
@@ -112,7 +112,7 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
                             }
                             // volt
                             string f7 = wire.voltage;
-                            if (wire.name == "Lx")
+                            if (wire.name == "Lx" && Tools.CellExistsCheck(connectedShapeTo, "Prop.Type"))
                             {
                                 f7 = connectedShapeTo.CellsU["Prop.Type"].ResultStrU[""] == "RGB" ? "12v" : connectedShapeTo.CellsU["Prop.Type"].ResultStrU[""];
                             }
