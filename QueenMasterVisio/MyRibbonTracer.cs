@@ -64,7 +64,7 @@ namespace QueenMasterVisio
             </group>
            <group id=""MyGroup64"" label=""Информация"">
                 <button id=""btnLookDevices"" label=""Показать устройства"" size=""large"" onAction=""OnButtonClick"" imageMso=""CustomizeMySite""/>
-                <button id=""btnLookDevicesOnPlan"" label=""Получить соединения с плана"" size=""large"" onAction=""OnButtonClick"" imageMso=""CustomizeMySite"" screentip=""Если трасировка на плане есть, то покажет все приходящие и исходящие конекты""/>
+                <button id=""btnLookDevicesOnPlan"" label=""Проверить соединения с плана"" size=""large"" onAction=""OnButtonClick"" imageMso=""CustomizeMySite"" screentip=""Если трасировка на плане есть, то покажет все приходящие и исходящие конекты""/>
             </group>
         </tab>
       <tab id=""MyTab"" label=""План трассеров"" getVisible=""GetTabVisible"">

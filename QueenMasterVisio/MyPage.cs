@@ -266,7 +266,7 @@ namespace QueenMasterVisio
             }
         }
 
-
+        /*
 		public void LookDevicesOnPlan(Page page)
 		{
 			
@@ -412,8 +412,79 @@ namespace QueenMasterVisio
             }
 
         }
+	*/
 
-		double toPixel(double num)
+        public void LookDevicesOnPlan(Page page)
+		{
+            string[] pageNameCodeArray = extractGValues(page.Name);
+            // Проверяем что это вообще девайс и получаем его G код
+            if (pageNameCodeArray.Length == 0)
+            {
+                MessageBox.Show("Алгоритм не определил сигнатуру устройства", "Страница не распознана", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            Visio.Page targetPage = null;
+            string result = "Designation;From;Way;To;Type;Voltage;Length;Note\r\n";
+            string pageNameCode = pageNameCodeArray[0].Replace("G", "");
+            Visio.Shape targetShape = null;
+
+            // Сначала ищем и получаем план в котором будет находится наш номер
+            foreach (Page searchPage in page.Document.Pages)
+            {
+                if (Tools.CellExistsCheck(searchPage, "User.pageCode"))
+                {
+                    // Нашли план
+                    if (Tools.CellFormulaGet(searchPage, "User.pageCode") == "Plan")
+                    {
+                        // Ищем объект девайса
+
+                        foreach (Visio.Shape shape in searchPage.Shapes)
+                        {
+                            if (!shape.Name.Contains("Device") && !shape.Name.Contains("Shield")) continue;
+
+                            // Если существует 
+                            if (Tools.CellExistsCheck(shape, "Prop.Number"))
+                            {
+                                string nameValue = shape.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
+                                Debug.WriteLine(nameValue);
+                                // Нашли совпадение
+                                if (nameValue == pageNameCode)
+                                {
+                                    targetShape = shape;
+                                    targetPage = searchPage;
+                                    Debug.WriteLine("НАШЛИ nameValue == pageNameCode: " + nameValue == pageNameCode);
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Получили страницу плана, теперь получим все соединения 
+                        if (targetPage != null)
+                        {
+                            string text = CableSchedule.Generate(targetPage);
+
+                            // Вытщаим из таблицы только строки с нашим девайсом
+                            foreach (string col in text.Split('\n'))
+                            {
+                                if ((col.Contains("G" + pageNameCode + ";") || col.Contains("G" + pageNameCode + " ")))
+                                {
+                                    result += col + '\n';
+                                }
+                            }
+                            targetPage = null;
+
+                        }
+
+                    }
+                }
+
+            }
+
+			Debug.WriteLine(result);
+        }
+
+        double toPixel(double num)
 		{
 			return num * (1/96);
 		}
@@ -1397,24 +1468,27 @@ namespace QueenMasterVisio
 
 		public void onShapeAdded(Visio.Shape shape)
 		{
-			if (GetActivePageCode() == "Plan") // ??
+			if (Checker.isLine(shape))
 			{
-                // Костыль
-                if (!rebuildBrake)
-					rebuildShape(shape, true);
-				// Чекаем вдруг появился новый layer
-				newLayerDetect(shape.Application.ActivePage);
-			}
-
-            if (banOverdrawingLine)
-			{
-				if (Checker.isLine(shape))
+				if (GetActivePageCode() == "Plan") // ??
 				{
-                    Tools.CellFormulaSet(shape, "ConFixedCode", "2");
-                }
-            }
+					// Костыль
+					if (!rebuildBrake)
+						rebuildShape(shape, true);
+					// Чекаем вдруг появился новый layer
+					newLayerDetect(shape.Application.ActivePage);
+				}
+                // Предположим что тут у нас девайсы
+                else
+                {
+					// Класс создан но там ничего нет, непонятно как сделать приоритеты
+				}
 
-			// Вот тут сканим добавленные трасеры на девайсы
+				if (banOverdrawingLine)
+				{
+					Tools.CellFormulaSet(shape, "ConFixedCode", "2");
+				}
+			}
 
 		}
 
@@ -1426,9 +1500,6 @@ namespace QueenMasterVisio
 			{
 				return;
 			}
-
-			if (Checker.isLine(shape) && GetActivePageCode() == "Plan") // ?? 
-			{
 				if (activePlanCode == null)
 				{
 					shape.Delete();
@@ -1499,7 +1570,7 @@ namespace QueenMasterVisio
 						MergeLineGeometry(nearestLine, shape);
 
                 }
-            }
+            
 
         }
 

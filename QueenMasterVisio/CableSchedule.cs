@@ -73,8 +73,11 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
                             // Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
 
                             // Пробуем смотреть есть ли у него Prop.Number и Prop.Type
-                            string propType = Tools.CellFormulaGet(shape, "Prop.Type");
-
+                            string propType = null;
+                           if( Tools.CellExistsCheck(shape, "Prop.Type"))
+                                {
+                                propType = Tools.CellFormulaGet(shape, "Prop.Type");
+                            }
                             // type
                             string f1 = wire.name + " - " + wire.comment;
                             // from
