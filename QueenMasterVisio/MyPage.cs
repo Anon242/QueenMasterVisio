@@ -1481,8 +1481,8 @@ namespace QueenMasterVisio
                 // Предположим что тут у нас девайсы
                 else
                 {
-					// Класс создан но там ничего нет, непонятно как сделать приоритеты
-				}
+					rebuildShapeDevice(shape);
+                }
 
 				if (banOverdrawingLine)
 				{
@@ -1573,8 +1573,56 @@ namespace QueenMasterVisio
             
 
         }
+		private static void rebuildShapeDevice(Visio.Shape shape)
+		{
+            if (shape.Connects.Count == 2)
+            {
+                Visio.Shape connectedShapeFrom = shape.Connects[1].ToSheet;
+                Visio.Shape connectedShapeTo = shape.Connects[2].ToSheet;
 
-		private static Visio.Shape FindNearestLine(Visio.Shape line)
+				string color = "";
+				string cable = "";
+
+                // Проверяем если это клемма
+                if (Tools.CellExistsCheck(connectedShapeFrom, "User.Color"))
+				{
+					color = Tools.CellValueGet(connectedShapeFrom,"User.Color");
+                }
+				// Проверяем может это кабель
+				else if(Tools.CellExistsCheck(connectedShapeFrom, "Prop.Row_1"))
+				{
+                    cable = Tools.CellValueGet(connectedShapeFrom, "Prop.Row_1");	
+                }
+
+                // Проверяем если это клемма
+                if (Tools.CellExistsCheck(connectedShapeTo, "User.Color"))
+                {
+                    color = Tools.CellValueGet(connectedShapeTo, "User.Color");
+                }
+                // Проверяем может это кабель
+                else if (Tools.CellExistsCheck(connectedShapeTo, "Prop.Row_1"))
+                {
+                    cable = Tools.CellValueGet(connectedShapeTo, "Prop.Row_1");
+                }
+
+				if(!string.IsNullOrEmpty(color))
+					shape.CellsU["LineColor"].FormulaU = '"' + color + '"';
+
+				if (!string.IsNullOrEmpty(cable))
+                    if (cable != "UTP")
+                        shape.CellsU["LineWeight"].FormulaU = "1 pt";
+
+                shape.CellsU["LineWeight"].FormulaU = "0.75 pt";
+                shape.CellsU["Rounding"].FormulaU = "2 mm";
+                shape.CellsU["ShapeRouteStyle"].FormulaU = "17";
+                shape.CellsU["ConFixedCode"].FormulaU = "0";
+                shape.CellsU["ConLineRouteExt"].FormulaU = "1";
+                shape.CellsU["Path"].FormulaU = "";
+            }
+        }
+
+
+        private static Visio.Shape FindNearestLine(Visio.Shape line)
 		{
 			// Получаем его конец и ищем ближайшую, вернем shape близкого
 			// Радиус поиска нужен маленькой

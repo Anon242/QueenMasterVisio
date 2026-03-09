@@ -24,6 +24,22 @@ namespace QueenMasterVisio
 {
     internal class Tools
     {
+
+        // Получаем значениеU из ячейки
+        public static string CellValueGet(Visio.Shape shape, string cell)
+        {
+            try
+            {
+                return shape.CellsU[cell].ResultStr[Visio.VisUnitCodes.visNoCast];
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("ERROR CellFormulaGet " + ex);
+                return null;
+            }
+
+        }
+
         // Получаем формулуU из ячейки
         public static string CellFormulaGet(Visio.Shape shape, string cell)
         {

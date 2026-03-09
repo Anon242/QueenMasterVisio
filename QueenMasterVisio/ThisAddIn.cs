@@ -90,7 +90,6 @@ namespace QueenMasterVisio
                 System.Diagnostics.Debug.WriteLine($"Error creating embedded window: {ex.Message}");
             }
         }
-
         private void EmbedUserControlInWindow()
         {
             try
