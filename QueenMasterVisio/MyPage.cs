@@ -1575,6 +1575,13 @@ namespace QueenMasterVisio
         }
 		private static void rebuildShapeDevice(Visio.Shape shape)
 		{
+            shape.CellsU["Rounding"].FormulaU = "1 mm";
+            shape.CellsU["LineWeight"].FormulaU = "1 pt";
+            shape.CellsU["ShapeRouteStyle"].FormulaU = "17";
+            shape.CellsU["ConFixedCode"].FormulaU = "0";
+            shape.CellsU["ConLineRouteExt"].FormulaU = "1";
+            
+
             if (shape.Connects.Count == 2)
             {
                 Visio.Shape connectedShapeFrom = shape.Connects[1].ToSheet;
@@ -1605,20 +1612,24 @@ namespace QueenMasterVisio
                     cable = Tools.CellValueGet(connectedShapeTo, "Prop.Row_1");
                 }
 
-				if(!string.IsNullOrEmpty(color))
-					shape.CellsU["LineColor"].FormulaU = '"' + color + '"';
+				if (!string.IsNullOrEmpty(color))
+				{
+					// Если цет серый, делаем черным
+					if(color == "RGB(180; 180; 180)")
+						color = "RGB(0;0;0)";
+
+                    shape.CellsU["LineColor"].FormulaU = '"' + color + '"';
+
+                }
 
 				if (!string.IsNullOrEmpty(cable))
                     if (cable != "UTP")
-                        shape.CellsU["LineWeight"].FormulaU = "1 pt";
+                        shape.CellsU["LineWeight"].FormulaU = "1.5 pt";
 
-                shape.CellsU["LineWeight"].FormulaU = "0.75 pt";
-                shape.CellsU["Rounding"].FormulaU = "2 mm";
-                shape.CellsU["ShapeRouteStyle"].FormulaU = "17";
-                shape.CellsU["ConFixedCode"].FormulaU = "0";
-                shape.CellsU["ConLineRouteExt"].FormulaU = "1";
-                shape.CellsU["Path"].FormulaU = "";
+               
             }
+			// Чому то вызывает исключение
+			try { shape.CellsU["Path"].FormulaU = ""; } catch { }
         }
 
 
