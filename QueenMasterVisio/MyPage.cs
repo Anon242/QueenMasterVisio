@@ -49,7 +49,7 @@ namespace QueenMasterVisio
 
 		BackgroundWorker backgroundWorker;
 
-		public void start()
+        public void start()
 		{
 			// Старт BackgroundWirker'a
 			backgroundWorker = new BackgroundWorker(app, app.ActiveDocument);
@@ -72,7 +72,14 @@ namespace QueenMasterVisio
 			else
 			{
 				MyRibbonTracer.RibbonReload(false);
-			}
+                // Тут мы применяем настройки
+                // LineAdjustFrom 1
+                // LineAdjustTo 2
+                Tools.CellFormulaSet(page, "LineAdjustFrom", "1");
+                Tools.CellFormulaSet(page, "LineAdjustTo", "2");
+            }
+
+
 
             /*
   	            string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -1564,6 +1571,7 @@ namespace QueenMasterVisio
 					shape.CellsU["LockMoveY"].FormulaU = "1";
 					shape.CellsU["LockRotate"].FormulaU = "1";
 					shape.CellsU["ShapeSplittable"].FormulaU = "0";
+					shape.CellsU["ConFixedCode"].FormulaU = "2";
 
 					Visio.Shape nearestLine = FindNearestLine(shape);
 					if(nearestLine != null)
@@ -1575,10 +1583,10 @@ namespace QueenMasterVisio
         }
 		private static void rebuildShapeDevice(Visio.Shape shape)
 		{
-            shape.CellsU["Rounding"].FormulaU = "1 mm";
+            shape.CellsU["Rounding"].FormulaU = "3 mm";
             shape.CellsU["LineWeight"].FormulaU = "1 pt";
             shape.CellsU["ShapeRouteStyle"].FormulaU = "17";
-            shape.CellsU["ConFixedCode"].FormulaU = "0";
+            shape.CellsU["ConFixedCode"].FormulaU = "2";
             shape.CellsU["ConLineRouteExt"].FormulaU = "1";
             
 

@@ -804,7 +804,7 @@ namespace QueenMasterVisio
                 {
                     int firstNumber = int.Parse(match.Groups[2].Value); 
                     int secondNumber = int.Parse(match.Groups[4].Value); 
-                    return Math.Abs(firstNumber - secondNumber);
+                    return Math.Abs(firstNumber - secondNumber) + 1;
                 }
                 catch
                 {
@@ -827,7 +827,7 @@ namespace QueenMasterVisio
                     if (firstNumber1 - secondNumber1 != 0)
                         return 0;
 
-                    return Math.Abs(firstNumber2 - secondNumber2);
+                    return Math.Abs(firstNumber2 - secondNumber2  ) + 1;
                 }
                 catch
                 {
