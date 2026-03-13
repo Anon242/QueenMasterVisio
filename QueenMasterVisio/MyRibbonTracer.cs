@@ -60,7 +60,7 @@ namespace QueenMasterVisio
                 <button id=""btnPasteAll"" label=""Вставить все на страницу"" size=""large"" onAction=""OnButtonClick"" imageMso=""Paste""/>
             </group>
            <group id=""MyGroup63"" label=""Настройки"">
-                <checkBox id=""chkToogleLine"" label=""Убрать авто-перетрассировку линий"" getPressed=""GetCheckboxState"" onAction=""OnCheckboxClick""/>
+                
             </group>
            <group id=""MyGroup64"" label=""Информация"">
                 <button id=""btnLookDevices"" label=""Показать устройства"" size=""large"" onAction=""OnButtonClick"" imageMso=""CustomizeMySite""/>
@@ -131,11 +131,12 @@ namespace QueenMasterVisio
             // Возвращает true для включенного состояния по умолчанию
             return true;
         }
+        /*
         public void OnCheckboxClick(IRibbonControl control, bool isPressed)
         {
-            MyPage.banOverdrawingLine = isPressed;
+            < checkBox id = ""chkToogleLine"" label = ""Убрать авто-перетрассировку линий"" getPressed = ""GetCheckboxState"" onAction = ""OnCheckboxClick"" />
         }
-
+        */
 
         public bool GetTabVisible(IRibbonControl control)
         {

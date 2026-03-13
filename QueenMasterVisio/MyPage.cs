@@ -35,7 +35,6 @@ namespace QueenMasterVisio
 		public static string activePageCode = null;
 		public static string activePlanCode = null;
 		static bool onShapeAddedBreak = false;
-		public static bool banOverdrawingLine = true;
 		public Collection<string> whiteList = new Collection<string>() { "QueenCallout" };
 		public Explorer explorer;
 
@@ -1491,10 +1490,6 @@ namespace QueenMasterVisio
 					rebuildShapeDevice(shape);
                 }
 
-				if (banOverdrawingLine)
-				{
-					Tools.CellFormulaSet(shape, "ConFixedCode", "2");
-				}
 			}
 
 		}
