@@ -76,6 +76,7 @@ namespace QueenMasterVisio
                 // LineAdjustTo 2
                 Tools.CellFormulaSet(page, "LineAdjustFrom", "1");
                 Tools.CellFormulaSet(page, "LineAdjustTo", "2");
+                Tools.CellFormulaSet(page, "RouteStyle", "17");
             }
 
 
@@ -884,7 +885,7 @@ namespace QueenMasterVisio
                     }
 				}
 
-                // Эта переменная растетб что бы странички шли друг за другом ровно, иначе если страница была пропущена, индекс пойдет дальше и будет перескок
+                // Эта переменная растет что бы странички шли друг за другом ровно, иначе если страница была пропущена, индекс пойдет дальше и будет перескок
                 int minusIndex = 0;
                 //Collection<Page> pagestest = new Collection<Page>();
 
@@ -943,7 +944,7 @@ namespace QueenMasterVisio
 
 
 							// Если есть что выделять (на случай пустых страниц)
-							if (selection.Count > 0)
+							if (selection.Count > 1)
 							{
                                 // Заранее у нас просчитана колекция с девайсами и щитами, что бы они наложились поверх
                                 foreach (Visio.Shape shape in backGroundShapes)
@@ -994,10 +995,13 @@ namespace QueenMasterVisio
 													{
 														// Нашли RGB
 														Debug.WriteLine(shape1.CellsU["Prop.Type"].FormulaU);
-														if(shape1.CellsU["Prop.Type"].FormulaU.Replace("\"", "") == "INDEX(2,Prop.Type.Format)")
-														{
-															lxNames.Add("L" + shape1.CellsU["Prop.Number"].FormulaU.Replace("\"", ""));
-                                                        }
+														if(Tools.CellExistsCheck(shape1, "Prop.Type")){
+															string value = Tools.CellValueGet(shape1, "Prop.Type");
+															if (value.Contains("RGB"))
+															{
+                                                                lxNames.Add("L" + shape1.CellsU["Prop.Number"].FormulaU.Replace("\"", ""));
+                                                            }
+														}
                                                     }
                                                 }
                                             }
@@ -1452,7 +1456,7 @@ namespace QueenMasterVisio
 
 		public void onShapeChanged(Visio.Shape shape)
 		{
-			Debug.WriteLine("Shape changed: " + shape.Name);
+			//Debug.WriteLine("Shape changed: " + shape.Name);
 		}
 
 		// Получение кода страницы
@@ -1568,7 +1572,8 @@ namespace QueenMasterVisio
 					shape.CellsU["ShapeSplittable"].FormulaU = "0";
 					shape.CellsU["ConFixedCode"].FormulaU = "2";
 
-					Visio.Shape nearestLine = FindNearestLine(shape);
+
+                    Visio.Shape nearestLine = FindNearestLine(shape);
 					if(nearestLine != null)
 						MergeLineGeometry(nearestLine, shape);
 
@@ -1583,7 +1588,7 @@ namespace QueenMasterVisio
             shape.CellsU["ShapeRouteStyle"].FormulaU = "17";
             shape.CellsU["ConFixedCode"].FormulaU = "2";
             shape.CellsU["ConLineRouteExt"].FormulaU = "1";
-            
+            //shape.CellsU["ObjType"].FormulaU = "4";
 
             if (shape.Connects.Count == 2)
             {
