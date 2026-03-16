@@ -421,74 +421,11 @@ namespace QueenMasterVisio
         }
 	*/
 
-        public void LookDevicesOnPlan(Page page)
+
+		public void LookDevicesOnPlan(Page page)
 		{
-            string[] pageNameCodeArray = extractGValues(page.Name);
-            // Проверяем что это вообще девайс и получаем его G код
-            if (pageNameCodeArray.Length == 0)
-            {
-                MessageBox.Show("Алгоритм не определил сигнатуру устройства", "Страница не распознана", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            Visio.Page targetPage = null;
-            string result = "Designation;From;Way;To;Type;Voltage;Length;Note\r\n";
-            string pageNameCode = pageNameCodeArray[0].Replace("G", "");
-            Visio.Shape targetShape = null;
-
-            // Сначала ищем и получаем план в котором будет находится наш номер
-            foreach (Page searchPage in page.Document.Pages)
-            {
-                if (Tools.CellExistsCheck(searchPage, "User.pageCode"))
-                {
-                    // Нашли план
-                    if (Tools.CellFormulaGet(searchPage, "User.pageCode") == "Plan")
-                    {
-                        // Ищем объект девайса
-
-                        foreach (Visio.Shape shape in searchPage.Shapes)
-                        {
-                            if (!shape.Name.Contains("Device") && !shape.Name.Contains("Shield")) continue;
-
-                            // Если существует 
-                            if (Tools.CellExistsCheck(shape, "Prop.Number"))
-                            {
-                                string nameValue = shape.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
-                                Debug.WriteLine(nameValue);
-                                // Нашли совпадение
-                                if (nameValue == pageNameCode)
-                                {
-                                    targetShape = shape;
-                                    targetPage = searchPage;
-                                    Debug.WriteLine("НАШЛИ nameValue == pageNameCode: " + nameValue == pageNameCode);
-                                    break;
-                                }
-                            }
-                        }
-
-                        // Получили страницу плана, теперь получим все соединения 
-                        if (targetPage != null)
-                        {
-                            string text = CableSchedule.Generate(targetPage);
-
-                            // Вытщаим из таблицы только строки с нашим девайсом
-                            foreach (string col in text.Split('\n'))
-                            {
-                                if ((col.Contains("G" + pageNameCode + ";") || col.Contains("G" + pageNameCode + " ")))
-                                {
-                                    result += col + '\n';
-                                }
-                            }
-                            targetPage = null;
-
-                        }
-
-                    }
-                }
-
-            }
-
-			Debug.WriteLine(result);
+			DeviceCheck.DeviceCheck deviceCheck = new DeviceCheck.DeviceCheck(this.app);
+			deviceCheck.Show();
         }
 
         double toPixel(double num)
@@ -1627,12 +1564,41 @@ namespace QueenMasterVisio
 						color = "RGB(0;0;0)";
 
                     shape.CellsU["LineColor"].FormulaU = '"' + color + '"';
+                }
+				else
+				{
+                    /*
+					 List<Visio.Shape> connectedShapes = new List<Visio.Shape>();
+					foreach (int _shape in connectedShapeTo.ConnectedShapes((short)Visio.VisConnectedShapesFlags.visConnectedShapesAllNodes, ""))
+						connectedShapes.Add(connectedShapeTo.ContainingPage.Shapes.ItemFromID[_shape]);
+                    foreach (int _shape in connectedShapeFrom.ConnectedShapes((short)Visio.VisConnectedShapesFlags.visConnectedShapesAllNodes, ""))
+                        connectedShapes.Add(connectedShapeTo.ContainingPage.Shapes.ItemFromID[_shape]);
+
+					 */
+                    foreach (Visio.Shape candidate in shape.ContainingPage.Shapes)
+                    {
+                        if (Checker.isLine(candidate))
+                        {
+							
+							if (candidate.CellsU["BeginX"].FormulaU == shape.CellsU["BeginX"].FormulaU ||
+								candidate.CellsU["EndX"].FormulaU == shape.CellsU["EndX"].FormulaU ||
+                                candidate.CellsU["EndX"].FormulaU == shape.CellsU["BeginX"].FormulaU ||
+								candidate.CellsU["BeginX"].FormulaU == shape.CellsU["EndX"].FormulaU)
+							{
+								shape.CellsU["LineColor"].FormulaU = candidate.CellsU["LineColor"].FormulaU;
+								shape.CellsU["LinePattern"].FormulaU = candidate.CellsU["LinePattern"].FormulaU;
+								shape.CellsU["LineWeight"].FormulaU = candidate.CellsU["LineWeight"].FormulaU;
+		
+
+                            }
+                        }
+                    }
 
                 }
 
 				if (!string.IsNullOrEmpty(cable))
-                    if (cable != "UTP")
-                        shape.CellsU["LineWeight"].FormulaU = "1.5 pt";
+					if (cable != "UTP")
+						shape.CellsU["LineWeight"].FormulaU = "1.5 pt";
 
                
             }
