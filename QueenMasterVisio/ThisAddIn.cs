@@ -1,5 +1,6 @@
 ﻿using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Visio;
+using QueenMasterVisio.MainLent;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -12,8 +13,8 @@ namespace QueenMasterVisio
 {
     public partial class ThisAddIn
     {
-        MyPage myPage;
-        MyRibbonTracer myRibbonTracer;
+        public MyPage myPage;
+        MainLentXml myRibbonTracer;
 
         private Explorer pageExplorer;
         private Visio.Window customWindow;
@@ -62,6 +63,7 @@ namespace QueenMasterVisio
         {
             pageExplorer.UpdateExplorer(Page.Application.ActiveDocument);
         }
+
 
         private void CreateEmbeddedWindow()
         {
@@ -145,9 +147,12 @@ namespace QueenMasterVisio
 
         protected override Microsoft.Office.Core.IRibbonExtensibility CreateRibbonExtensibilityObject()
         {
-            myRibbonTracer = new MyRibbonTracer();
+            myRibbonTracer = new MainLent.MainLentXml();
             return myRibbonTracer;
+          
         }
+
+
 
 
         #region Код, автоматически созданный VSTO

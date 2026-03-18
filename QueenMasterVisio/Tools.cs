@@ -40,6 +40,20 @@ namespace QueenMasterVisio
 
         }
 
+        public static string CellValueGet(Visio.Page page, string cell)
+        {
+            try
+            {
+                return page.PageSheet.CellsU[cell].ResultStr[Visio.VisUnitCodes.visNoCast];
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("ERROR CellFormulaGet " + ex);
+                return null;
+            }
+
+        }
+
         // Получаем формулуU из ячейки
         public static string CellFormulaGet(Visio.Shape shape, string cell)
         {

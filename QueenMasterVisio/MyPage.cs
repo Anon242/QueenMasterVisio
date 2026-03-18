@@ -1,5 +1,6 @@
 ﻿using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Visio;
+using QueenMasterVisio.MainLent;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -66,11 +67,11 @@ namespace QueenMasterVisio
 				{
 					activePlanCode = GetActivePlanCodeOnFirstOpen(page);
                 }
-                MyRibbonTracer.RibbonReload(true);
+                MainLentXml.RibbonReload(true);
 			}
 			else
 			{
-				MyRibbonTracer.RibbonReload(false);
+				MainLentXml.RibbonReload(false);
                 // Тут мы применяем настройки
                 // LineAdjustFrom 1
                 // LineAdjustTo 2
@@ -110,7 +111,7 @@ namespace QueenMasterVisio
 
         }
 
-        public  void onButtonPressed(Page page, string buttonId)
+        public void onButtonPressed(Page page, string buttonId)
 		{
 			if (buttonId == "AutoConnect")
 			{
@@ -193,13 +194,15 @@ namespace QueenMasterVisio
                 */
 				try
 				{
-					page.Paste(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors | Visio.VisCutCopyPasteCodes.visCopyPasteDontAddToContainers);
+					onShapeAddedBreak = true;
+                    page.Paste(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors | Visio.VisCutCopyPasteCodes.visCopyPasteDontAddToContainers);
 					setRedSquareOnPage(page, false);
 					Clipboard.Clear();
 					Selection selection = page.Application.ActiveWindow.Selection;
 					selection.SelectAll();
 					selection.ConvertToGroup();
-				}
+                    onShapeAddedBreak = false;
+                }
 				catch
 				{
 
@@ -773,7 +776,7 @@ namespace QueenMasterVisio
 				if (item.name != "Plan")
 					setLayerSheetPrint(page, item.name, 0);
 			}
-			MyRibbonTracer.RibbonReload(true);
+			MainLentXml.RibbonReload(true);
 			activePageCode = "Plan";
 
 			// Переносим все на PLAN
@@ -1415,6 +1418,10 @@ namespace QueenMasterVisio
 
 		public void onShapeAdded(Visio.Shape shape)
 		{
+			// Не вызываем если хоть кто то запретил это делать
+			if (onShapeAddedBreak)
+				return;
+
 			if (Checker.isLine(shape))
 			{
 				if (GetActivePageCode() == "Plan") // ??
@@ -1438,11 +1445,7 @@ namespace QueenMasterVisio
 		// onUserShape - false: Значит линия создана была автоматически
 		private static void rebuildShape(Visio.Shape shape, bool onUserShape = false)
 		{
-			// Костыль
-			if (onShapeAddedBreak)
-			{
-				return;
-			}
+
 				if (activePlanCode == null)
 				{
 					shape.Delete();
@@ -1520,12 +1523,12 @@ namespace QueenMasterVisio
         }
 		private static void rebuildShapeDevice(Visio.Shape shape)
 		{
-            shape.CellsU["Rounding"].FormulaU = "3 mm";
-            shape.CellsU["LineWeight"].FormulaU = "1 pt";
-            shape.CellsU["ShapeRouteStyle"].FormulaU = "17";
-            shape.CellsU["ConFixedCode"].FormulaU = "2";
-            shape.CellsU["ConLineRouteExt"].FormulaU = "1";
-            //shape.CellsU["ObjType"].FormulaU = "4";
+
+
+            if(Tools.CellExistsCheck(shape.ContainingPage, "Prop.Scale"))
+			{
+				shape.CellsU["LineWeight"].FormulaU = "=IFERROR(ThePage!Prop.Scale*0.5&\"pt\",1)";
+            }
 
             if (shape.Connects.Count == 2)
             {
@@ -1564,46 +1567,45 @@ namespace QueenMasterVisio
 						color = "RGB(0;0;0)";
 
                     shape.CellsU["LineColor"].FormulaU = '"' + color + '"';
-                }
-				else
-				{
-                    /*
-					 List<Visio.Shape> connectedShapes = new List<Visio.Shape>();
-					foreach (int _shape in connectedShapeTo.ConnectedShapes((short)Visio.VisConnectedShapesFlags.visConnectedShapesAllNodes, ""))
-						connectedShapes.Add(connectedShapeTo.ContainingPage.Shapes.ItemFromID[_shape]);
-                    foreach (int _shape in connectedShapeFrom.ConnectedShapes((short)Visio.VisConnectedShapesFlags.visConnectedShapesAllNodes, ""))
-                        connectedShapes.Add(connectedShapeTo.ContainingPage.Shapes.ItemFromID[_shape]);
+                  
 
-					 */
+                }
+                else
+				{
+
+
                     foreach (Visio.Shape candidate in shape.ContainingPage.Shapes)
                     {
-                        if (Checker.isLine(candidate))
+                        if (Checker.isLine(candidate) && candidate.ID != shape.ID)
                         {
-							
-							if (candidate.CellsU["BeginX"].FormulaU == shape.CellsU["BeginX"].FormulaU ||
-								candidate.CellsU["EndX"].FormulaU == shape.CellsU["EndX"].FormulaU ||
-                                candidate.CellsU["EndX"].FormulaU == shape.CellsU["BeginX"].FormulaU ||
-								candidate.CellsU["BeginX"].FormulaU == shape.CellsU["EndX"].FormulaU)
-							{
-								shape.CellsU["LineColor"].FormulaU = candidate.CellsU["LineColor"].FormulaU;
-								shape.CellsU["LinePattern"].FormulaU = candidate.CellsU["LinePattern"].FormulaU;
-								shape.CellsU["LineWeight"].FormulaU = candidate.CellsU["LineWeight"].FormulaU;
-		
 
+							if ((candidate.CellsU["BeginX"].ResultIU == shape.CellsU["BeginX"].ResultIU && candidate.CellsU["BeginY"].ResultIU == shape.CellsU["BeginY"].ResultIU) ||
+                                (candidate.CellsU["EndX"].ResultIU == shape.CellsU["EndX"].ResultIU && candidate.CellsU["EndY"].ResultIU == shape.CellsU["EndY"].ResultIU) ||
+                                (candidate.CellsU["BeginX"].ResultIU == shape.CellsU["EndX"].ResultIU && candidate.CellsU["BeginY"].ResultIU == shape.CellsU["EndY"].ResultIU))
+                            {
+
+                                shape.CellsU["LineColor"].FormulaU = candidate.CellsU["LineColor"].FormulaU;
+								shape.CellsU["LinePattern"].FormulaU = candidate.CellsU["LinePattern"].FormulaU;
+								break;
                             }
                         }
                     }
+					
+
 
                 }
 
-				if (!string.IsNullOrEmpty(cable))
-					if (cable != "UTP")
-						shape.CellsU["LineWeight"].FormulaU = "1.5 pt";
 
                
             }
-			// Чому то вызывает исключение
-			try { shape.CellsU["Path"].FormulaU = ""; } catch { }
+
+            shape.CellsU["Rounding"].FormulaU = "3 mm";
+            shape.CellsU["ShapeRouteStyle"].FormulaU = "17";
+            shape.CellsU["ConFixedCode"].FormulaU = "2";
+            shape.CellsU["ConLineRouteExt"].FormulaU = "1";
+            //shape.CellsU["ObjType"].FormulaU = "4";
+            // Чому то вызывает исключение
+            try { shape.CellsU["Path"].FormulaU = ""; } catch { }
         }
 
 

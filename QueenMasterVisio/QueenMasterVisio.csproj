@@ -34,7 +34,7 @@
     <PublishUrl>опубликовать\</PublishUrl>
     <InstallUrl />
     <TargetCulture>ru</TargetCulture>
-    <ApplicationVersion>1.0.0.25</ApplicationVersion>
+    <ApplicationVersion>1.0.0.27</ApplicationVersion>
     <AutoIncrementApplicationRevision>true</AutoIncrementApplicationRevision>
     <UpdateEnabled>true</UpdateEnabled>
     <UpdateInterval>7</UpdateInterval>
@@ -208,10 +208,10 @@
     <Compile Include="BackgroundWorker.cs" />
     <Compile Include="CableSchedule.cs" />
     <Compile Include="Checker.cs" />
-    <Compile Include="DeviceCheck\DeviceCheck.cs">
+    <Compile Include="DeviceControl\DeviceCheck\DeviceCheck.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="DeviceCheck\DeviceCheck.Designer.cs">
+    <Compile Include="DeviceControl\DeviceCheck\DeviceCheck.Designer.cs">
       <DependentUpon>DeviceCheck.cs</DependentUpon>
     </Compile>
     <Compile Include="Explorer.cs">
@@ -220,6 +220,8 @@
     <Compile Include="Explorer.Designer.cs">
       <DependentUpon>Explorer.cs</DependentUpon>
     </Compile>
+    <Compile Include="MainLent\ButtonsControl.cs" />
+    <Compile Include="MainLent\MainLentXml.cs" />
     <Compile Include="MyPage.cs" />
     <Compile Include="MyRibbonTracer.cs" />
     <Compile Include="PageElement.cs" />
@@ -230,7 +232,7 @@
     <Compile Include="Tools.cs" />
     <Compile Include="Wire.cs" />
     <Compile Include="WireService.cs" />
-    <EmbeddedResource Include="DeviceCheck\DeviceCheck.resx">
+    <EmbeddedResource Include="DeviceControl\DeviceCheck\DeviceCheck.resx">
       <DependentUpon>DeviceCheck.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Explorer.resx">
@@ -276,7 +278,9 @@
   <ItemGroup>
     <None Include="Resources\2400441.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="MainLent\MainLentXml.xml" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
