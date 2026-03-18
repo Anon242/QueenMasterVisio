@@ -66,7 +66,7 @@ namespace QueenMasterVisio.DeviceCheck
             // Получили страницу плана, теперь получим все соединения 
             if (targetPage != null)
             {
-                string text = CableSchedule.Generate(targetPage);
+                string text = CableService.Generate(targetPage);
 
                 // Вытщаим из таблицы только строки с нашим девайсом
                 foreach (string col in text.Split('\n'))

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Visio;
-using QueenMasterVisio.MainLent;
+using QueenMasterVisio.Core.Helpers;
+using QueenMasterVisio.Ribbon;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -29,7 +30,7 @@ using Visio = Microsoft.Office.Interop.Visio;
 namespace QueenMasterVisio
 {
 
-	public class MyPage
+	public class VisioEventAggregator
 	{
 		Application app;
 		string docName;
@@ -39,7 +40,7 @@ namespace QueenMasterVisio
 		public Collection<string> whiteList = new Collection<string>() { "QueenCallout" };
 		public Explorer explorer;
 
-		public MyPage(Application _app, string _name, Explorer _explorer)
+		public VisioEventAggregator(Application _app, string _name, Explorer _explorer)
 		{
 			app = _app;
 			docName = _name;
@@ -60,12 +61,12 @@ namespace QueenMasterVisio
 		private void onPageChanged(object sender, Page page)
 		{
 			//page.Application.DoCmd((short)VisUICmds.visCmdViewFitInWindow); // Команда выровнять по ширине
-			activePageCode = getPageCode(page);
-			if (activePageCode == "Plan")
+
+			if (page.IsPlanPage())
 			{
 				if(activePlanCode == null)
 				{
-					activePlanCode = GetActivePlanCodeOnFirstOpen(page);
+					activePlanCode = page.GetPlanCode();
                 }
                 MainLentXml.RibbonReload(true);
 			}
@@ -80,350 +81,7 @@ namespace QueenMasterVisio
                 Tools.CellFormulaSet(page, "RouteStyle", "17");
             }
 
-
-
-            /*
-  	            string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-  	            string folderPath = System.IO.Path.Combine(docPath, "QueenScriptPictures");
-  	            string fileName = page.Name + ".jpg";
-  	            string fullPath = System.IO.Path.Combine(folderPath, fileName);
-  	
-  	            // Создаем папку если не существует
-  	            if (!Directory.Exists(folderPath))
-  	            {
-  	                Directory.CreateDirectory(folderPath);
-  	            }
-  	
-  	            Debug.WriteLine(fullPath);
-  	            page.Export(fullPath);
-  	            */
-
         }
-
-
-        public  void onRibbonTracerBtn(IRibbonControl control)
-		{
-			var visioApp = Globals.ThisAddIn.Application;
-			var activePage = visioApp.ActivePage;
-			string pageCode = getPageCode(activePage);
-			if(control.Id.Contains("btn"))
-				onButtonPressed(activePage, control.Id.Substring(3));
-
-        }
-
-        public void onButtonPressed(Page page, string buttonId)
-		{
-			if (buttonId == "AutoConnect")
-			{
-				if (activePlanCode != "Plan" && activePlanCode != "All")
-					onTracerBtnPressed(page, activePlanCode);
-			}
-			else if (buttonId == "Reload")
-			{
-				onReloadBtnPressed(page);
-			}
-			else if (buttonId == "CreatePlan")
-			{
-				onCreatePlanPressed(page);
-			}
-			// Проверка по второму символу, осторожно
-			else if (buttonId[1] == 'x' || buttonId == "Plan" || buttonId == "All" || buttonId.Contains("Other"))
-			{
-				activePlanCode = buttonId;
-				onLayersBtnPressed(page);
-			}
-			else if (buttonId == "Lock" && GetActivePageCode() != "Plan")
-			{
-				foreach (Visio.Shape shape in page.Shapes)
-				{
-					if (Checker.isLine(shape))
-					{
-						Tools.CellFormulaSet(shape, "ConFixedCode", "2");
-					}
-				}
-				setRedSquareOnPage(page, true);
-				lockAllLayers(page);
-			}
-			else if (buttonId == "Unlock" && GetActivePageCode() != "Plan")
-			{
-				unlockAllLayers(page);
-				setRedSquareOnPage(page, false);
-			}
-			else if (buttonId == "UpdatePage" && GetActivePageCode() == "planAuto")
-			{
-				redrawPageAuto(page);
-			}
-			else if (buttonId == "DevicesCheck" && GetActivePageCode() == "Plan")
-			{
-				Checker.CheckDevicesInPlan(page); // Не верно 
-			}
-			else if (buttonId == "CopyAll")
-			{
-				try
-				{
-					// ЭТО ВРЕМЯНКА, КОСТЫЛЬ БЛЯТЬ
-					foreach (Visio.Shape shape in page.Shapes)
-					{
-						if (Checker.isLine(shape))
-						{
-							Tools.CellFormulaSet(shape, "ConFixedCode", "2");
-						}
-					}
-					unlockAllLayers(page);
-					Selection selection = page.Application.ActiveWindow.Selection;
-					selection.SelectAll();
-					selection.Copy(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors | Visio.VisCutCopyPasteCodes.visCopyPasteDontAddToContainers);
-					lockAllLayers(page);
-					selection.DeselectAll();
-				}
-				catch
-				{
-
-
-				}
-			}
-			else if (buttonId == "PasteAll")
-			{
-				// Эксперимент
-				// Смотрим, если не было ни одного "Динамическая соединительная линия.". То если они появятся, мы всех их удалим.
-				/*
-				int masterLineCounts = 0;
-				foreach(Master master in page.Document.Masters)
-					if (master.Name.Contains("Динамическая соединительная линия."))
-						masterLineCounts++;
-                */
-				try
-				{
-					onShapeAddedBreak = true;
-                    page.Paste(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors | Visio.VisCutCopyPasteCodes.visCopyPasteDontAddToContainers);
-					setRedSquareOnPage(page, false);
-					Clipboard.Clear();
-					Selection selection = page.Application.ActiveWindow.Selection;
-					selection.SelectAll();
-					selection.ConvertToGroup();
-                    onShapeAddedBreak = false;
-                }
-				catch
-				{
-
-
-				}
-				/*
-				if (masterLineCounts == 0) {
-					bool buffer = true;
-					while (buffer) {
-						buffer = false;
-                        foreach (Master master in page.Document.Masters)
-							if (master.Name.Contains("Динамическая соединительная линия."))
-							{
-								buffer = true;
-                                master.Delete();
-							}
-					}
-				}
-				*/
-			}
-			// В буфер обмена вставляем строки 
-			else if (buttonId == "GetLineData")
-			{
-				//MessageBox.Show(CableSchedule.Generate(page),"Test",MessageBoxButtons.OK);
-				string str = CableSchedule.Generate(page);
-				Clipboard.SetText(str);
-				Debug.WriteLine(str);
-
-			}
-			else if (buttonId == "SetHyperLinks")
-			{
-				SetHyperLinks(page);
-            }
-			else if (buttonId == "LookDevices")
-			{
-                explorer.LookDevices(page);
-            }
-			else if(buttonId == "LookDevicesOnPlan")
-			{
-				// Получаем соединения с плана находясь на странице устройства 
-				LookDevicesOnPlan(page);
-            }
-			else if(buttonId == "CreateNewDevice")
-			{
-                // Создать новый девайс
-				Page activePage = page;
-                Page newPage = page.Document.Pages.Add();
-                app.ActiveWindow.Page = activePage;
-                short pageIndex = (short)(page.Document.Pages.Count - 1);
-                newPage.Name = explorer.ShowRenameDialog("G" + pageIndex);
-
-				if (newPage.Name[0] == 'G')
-				{
-                    // Делаем что она была перед первым светом
-                    foreach (Page _page in page.Document.Pages)
-                    {
-                        Regex regexLight = new Regex(@"^L\d");
-                        if (regexLight.IsMatch(_page.Name))
-                        {
-                            newPage.Index = _page.Index;
-                            break;
-                        }
-                    }
-				}
-				else
-				{
-                    newPage.Index = (short)(pageIndex);
-                }
-
-                app.ActiveWindow.Page = newPage;
-            }
-        }
-
-        /*
-		public void LookDevicesOnPlan(Page page)
-		{
-			
-			string [] pageNameCodeArray = extractGValues(page.Name);
-			// Проверяем что это вообще девайс и получаем его G код
-			if(pageNameCodeArray.Length == 0)
-			{
-                MessageBox.Show("Алгоритм не определил сигнатуру устройства","Страница не распознана",MessageBoxButtons.OK,MessageBoxIcon.Warning);
-                return;
-			}
-
-            Visio.Page targetPage = null;
-            string result = "Designation;From;Way;To;Type;Voltage;Length;Note\r\n";
-            string pageNameCode = pageNameCodeArray[0].Replace("G", "");
-			Visio.Shape targetShape = null;
-
-            // Сначала ищем и получаем план в котором будет находится наш номер
-            foreach (Page searchPage in page.Document.Pages)
-			{
-				if(Tools.CellExistsCheck(searchPage, "User.pageCode"))
-				{
-					// Нашли план
-					if (Tools.CellFormulaGet(searchPage, "User.pageCode") == "Plan")
-					{
-                        // Ищем объект девайса
-                        
-                            foreach (Visio.Shape shape in searchPage.Shapes)
-                            {
-                                if (!shape.Name.Contains("Device") && !shape.Name.Contains("Shield")) continue;
-
-                            // Если существует 
-                            if (Tools.CellExistsCheck(shape, "Prop.Number"))
-                                {
-                                    string nameValue = shape.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
-								Debug.WriteLine(nameValue);
-                                    // Нашли совпадение
-                                    if (nameValue == pageNameCode)
-                                    {
-										targetShape = shape;
-                                        targetPage = searchPage;
-                                        Debug.WriteLine("НАШЛИ nameValue == pageNameCode: " + nameValue == pageNameCode);
-                                        break;
-                                    }
-                                }
-                            }
-
-                        // Получили страницу плана, теперь получим все соединения 
-                        if (targetPage != null)
-						{
-							string text = CableSchedule.Generate(targetPage);
-
-                            // Вытщаим из таблицы только строки с нашим девайсом
-                            foreach (string col in text.Split('\n'))
-							{
-								if ((col.Contains("G" + pageNameCode+";") || col.Contains("G" + pageNameCode + " ")))
-								{
-									result += col + '\n';
-                                }
-							}
-							targetPage = null;
-							
-                        }
-
-                    }
-				}
-
-			}
-            // Вот тут надо вставить прям на страничку текст
-            if (result.Split('\n').Length > 2)
-            {
-                // result
-                string[] masterNamesStrings = { "Cable", "TerminalDel", "Terminal", "Remark" };
-                Visio.Master[] masters = { null, null, null, null };
-
-                for (int i = 0; i < masters.Length; i++)
-                {
-                    try
-                    {
-                        masters[i] = page.Document.Masters[masterNamesStrings[i]];
-                    }
-                    catch { }
-                }
-
-                // Проверяем 4 важных элемента есть ли в образах
-                if (masters.All(m => m != null))
-                {
-                    Debug.WriteLine("Все образцы найдены в документе");
-                    Visio.Shape shapeOld = null;
-
-					string[] resultSplit = result.Split('\n');
-					double terminalWidth = 0;
-                    // Добавляем фигуру на страницу
-                    for (int i = 0; i < resultSplit.Length-2; i++)
-                    {
-                        Visio.Shape shape = page.Drop(masters[2], toPixel(50), toPixel(-50));
-						Tools.CellFormulaSet(shape,"Prop.name2","");
-
-						int terminalCount = 2;
-						if (resultSplit[i].Split(';')[4].Contains(" x "))
-						{
-							terminalCount = int.Parse(resultSplit[i].Split(';')[4].Split('x')[0]);
-                        }
-						for (int j = 0; j < terminalCount; j++)
-						{
-							if (shapeOld != null)
-							{
-								string shapeName = shape.NameU;
-								string shapeNameOld = shapeOld.NameU;
-								Debug.WriteLine(shapeNameOld);
-								// Разделитель к терминалу
-								if (shapeNameOld.Contains("Del"))
-								{
-									Tools.CellFormulaSet(shape, "PinX", $"=PNTX(LOCTOPAR(PNT({shapeNameOld}!Connections.X2,{shapeNameOld}!Connections.Y2),{shapeNameOld}!EventXFMod,EventXFMod))+3 pt");
-									Tools.CellFormulaSet(shape, "PinY", $"=PNTY(LOCTOPAR(PNT({shapeNameOld}!Connections.X2,{shapeNameOld}!Connections.Y2),{shapeNameOld}!EventXFMod,EventXFMod))+0 pt");
-									terminalWidth += 6;
-
-                                }
-								// Терминал к разделителю
-								else
-								{
-									Tools.CellFormulaSet(shape, "PinX", $"=PNTX(LOCTOPAR(PNT({shapeNameOld}!Connections.X2,{shapeNameOld}!Connections.Y2),{shapeNameOld}!EventXFMod,EventXFMod))+6 pt");
-									Tools.CellFormulaSet(shape, "PinY", $"=PNTY(LOCTOPAR(PNT({shapeNameOld}!Connections.X2,{shapeNameOld}!Connections.Y2),{shapeNameOld}!EventXFMod,EventXFMod))+0 pt");
-									terminalWidth += 12;
-
-                                }
-
-
-                            }
-							shapeOld = shape;
-						}
-                        // тут спавним кабель
-                        Visio.Shape shapeCable = page.Drop(masters[0], toPixel(50 + terminalWidth), toPixel(-130));
-						Tools.CellFormulaSet(shapeCable, "Prop.Row_1", "\"" + resultSplit[i].Split(';')[4] + "\"");
-						Tools.CellFormulaSet(shapeCable, "Prop.Row_2", "\"" + resultSplit[i].Split(';')[2] + "\"");
-
-                    }
-                }
-            }
-            else
-            {
-                MessageBox.Show("Не получилось найти объект: " + pageNameCode, "Объект не найден", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-        }
-	*/
-
 
 		public void LookDevicesOnPlan(Page page)
 		{
@@ -431,10 +89,6 @@ namespace QueenMasterVisio
 			deviceCheck.Show();
         }
 
-        double toPixel(double num)
-		{
-			return num * (1/96);
-		}
 
         private void SetHyperLinks(Page page)
 		{
@@ -493,19 +147,7 @@ namespace QueenMasterVisio
                 explorer.LookDevices(currentPage);
             }
         }
-        private static string GetActivePlanCodeOnFirstOpen(Page page)
-		{
-			foreach (Layer layer in page.Layers)
-			{
-                string celIndex = layer.Index == 0 ? "" : '[' + "" + (layer.Index) + ']';
-                if(page.PageSheet.Cells[$"Layers.Active" + celIndex].Formula == "1")
-				{
-					return layer.Name;
-				}
 
-			}
-            return null;
-        }
 
         private static void redrawPageAuto(Page page)
 		{
@@ -676,14 +318,8 @@ namespace QueenMasterVisio
 			return newLayer;
 		}
 
-		private static void onTracerBtnPressed(Page page, string activePlanCode)
-		{
-			autoConnect(activePlanCode, page);
-		}
-		private static void onReloadBtnPressed(Page page)
-		{
-			createNewReloadPages(page);
-		}
+
+		
 		// Одна из кнопок связанная с линиями (Px, Cx, Plan, All, ...)
 		private static void onLayersBtnPressed(Page page)
 		{
@@ -786,214 +422,6 @@ namespace QueenMasterVisio
             }
         }
 
-		public static void createNewReloadPages(Page page)
-		{
-			// Защита от дурака
-			if (GetActivePageCode() != "Plan")
-				return;
-
-
-            Thread th = new Thread(() =>
-			{
-				// Костыль
-				onShapeAddedBreak = true;
-
-				Selection selectionPlan = page.Application.ActiveWindow.Selection;
-				selectionPlan = page.CreateSelection(Visio.VisSelectionTypes.visSelTypeByLayer, Visio.VisSelectMode.visSelModeSkipSuper, "Plan");
-
-				// Удаляем старое и создаем подложку с устройствами 
-				Page backPage = GetOrCreateBackgroundPlan(page, page.PageSheet.CellsU["User.id"].Formula);
-				// На подложку вставляем устройства
-				try
-				{
-					selectionPlan.Copy(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors);
-					backPage.Paste(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors);
-					Clipboard.Clear();
-				}
-				catch
-				{
-				}
-
-                Collection<Visio.Shape> backGroundShapes = new Collection<Visio.Shape>();
-                //Selection backGroundShapes = page.Application.ActiveWindow.Selection;
-
-                foreach (Visio.Shape shape in page.Shapes)
-				{
-					if (shape.Name.Contains("Device") || shape.Name.Contains("Shield") || shape.Name.Contains("Recorder") || shape.Name.Contains("WireName"))
-					{
-                        backGroundShapes.Add(shape);
-                    }
-				}
-
-                // Эта переменная растет что бы странички шли друг за другом ровно, иначе если страница была пропущена, индекс пойдет дальше и будет перескок
-                int minusIndex = 0;
-                //Collection<Page> pagestest = new Collection<Page>();
-
-                foreach (Layer layer in page.Layers)
-				{
-                    // Детектор сделали ли мы что то на слое чи не
-                    // Upd ориентир по прозрачности 1%
-
-                    // Проверяем все слои что есть в списке
-                    if (WireService.ThatIsTraccer(layer.Name))
-					{
-                        // Тут было условие по кол ву кабелей на слое 
-                        //Создаем селекциию, на всякий очищаем находящейся там
-                        Selection selection = page.Application.ActiveWindow.Selection;
-                        // Выделяем все фигуры на слое и слой плана, добавляем в селкцию
-                        selection = page.CreateSelection(Visio.VisSelectionTypes.visSelTypeByLayer, Visio.VisSelectMode.visSelModeSkipSuper, layer.Name);
-
-						if(selection.Count == 0)
-						{
-							minusIndex++;
-                        }
-						// Если ничего нет на слое, то скип
-						else
-						{
-							// Поиск существующих
-							Page defNewPage = searchAutoPage(page, page.PageSheet.CellsU["User.id"].Formula, layer.Name);
-							// Страница уже существует, удаляем
-							if (defNewPage != null)
-								defNewPage.Delete(2);
-
-							short row;
-							// Создаем страницу
-							defNewPage = page.Document.Pages.Add();
-							// Делаем что бы следующей шла и минусуем если слой пропущен
-							defNewPage.Index = (short)(page.Index + WireService.wires.FindIndex(w => w.name == layer.Name) - minusIndex);
-							// Имя страницы
-							Wire wire = WireService.wires.FirstOrDefault(w => w.name == layer.Name);
-							string  _pagename1 = page.Name.Replace("Plan","").Replace("-","").Trim();
-                            defNewPage.Name = "Plan " + layer.Name + " - " + _pagename1 +" "+ wire.comment;
-							// Даем код страницы ("planAuto")
-							row = (short)defNewPage.PageSheet.AddNamedRow((short)VisSectionIndices.visSectionUser, "pageCode", (short)VisRowTags.visTagDefault);
-							defNewPage.PageSheet.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = $"\"{"planAuto"}\"";
-							// Даем тип страницы (Ax, Px, ...)
-							row = (short)defNewPage.PageSheet.AddNamedRow((short)VisSectionIndices.visSectionUser, "pageType", (short)VisRowTags.visTagDefault);
-							defNewPage.PageSheet.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = $"\"{layer.Name}\"";
-							// Даем Id (0,1,2 ...)
-							row = (short)defNewPage.PageSheet.AddNamedRow((short)VisSectionIndices.visSectionUser, "id", (short)VisRowTags.visTagDefault);
-							defNewPage.PageSheet.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = $"{page.PageSheet.CellsU["User.id"].Formula}";
-
-							defNewPage.BackPage = backPage;
-
-							// Запоминаем был ли он visible чи не
-							string celIndex = layer.Index == 0 ? "" : '[' + "" + (layer.Index) + ']';
-							string memoryVisibleCell = page.PageSheet.CellsU[$"Layers.Visible" + celIndex].Formula;
-							page.PageSheet.CellsU[$"Layers.Visible" + celIndex].Formula = "1";
-
-
-							// Если есть что выделять (на случай пустых страниц)
-							if (selection.Count > 1)
-							{
-                                // Заранее у нас просчитана колекция с девайсами и щитами, что бы они наложились поверх
-                                foreach (Visio.Shape shape in backGroundShapes)
-                                {
-                                    selection.Select(shape, 2);
-                                }
-                                try
-								{
-
-                                    selection.Copy(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors);
-									defNewPage.Paste(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors);
-									Clipboard.Clear();
-
-									//pagestest.Add(defNewPage);
-
-                                    //selectionDevices.Copy(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors);
-                                    //defNewPage.Paste(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors);
-                                    //Clipboard.Clear();
-                                }
-								catch
-								{
-								}
-
-								// Тут ищем вдруг есть WireName Объект и даем ему название кабеля
-								foreach (Visio.Shape shape in defNewPage.Shapes)
-								{
-									if (shape.Name.Contains("WireName"))
-									{
-										// Нашли									
-                                        shape.Text = wire.comment + " " + wire.defaultCable + " " + wire.voltage; 
-                                        shape.CellsU["Char.Color"].FormulaU = wire.color;
-										Debug.WriteLine("Мы написали");
-                                        // Если мы на странице света, ищем RGB что бы указать их как UTP
-                                        Debug.WriteLine("layer.Name " + layer.Name);
-
-                                        if (layer.Name == "Lx")
-                                        {
-                                            Debug.WriteLine("Опредилили " + layer.Name);
-
-                                            List<string> lxNames = new List<string>();
-                                            foreach (Visio.Shape shape1 in defNewPage.Shapes)
-                                            {
-                                                if (shape1.Name.Contains("Light"))
-                                                {
-                                                    Debug.WriteLine("СВЕТ " + shape1.Name);
-
-                                                    if (Tools.CellExistsCheck(shape1, "Prop.Type"))
-													{
-														// Нашли RGB
-														Debug.WriteLine(shape1.CellsU["Prop.Type"].FormulaU);
-														if(Tools.CellExistsCheck(shape1, "Prop.Type")){
-															string value = Tools.CellValueGet(shape1, "Prop.Type");
-															if (value.Contains("RGB"))
-															{
-                                                                lxNames.Add("L" + shape1.CellsU["Prop.Number"].FormulaU.Replace("\"", ""));
-                                                            }
-														}
-                                                    }
-                                                }
-                                            }
-											// Есть хоть одно
-											if(lxNames.Count != 0)
-											{
-												shape.Text += '\n';
-                                                shape.Text += string.Join(", ", lxNames);
-												shape.Text += " - 4 x 1.5";
-                                            }
-                                        }
-                                        break;
-									}
-								}
-
-							}
-                            selection.DeselectAll();
-
-
-                            // Видимый для печати 
-                            setPrintOnOnLayers(defNewPage);
-							// Блокируем
-							lockAllLayers(defNewPage);
-							// Возращаем значение которое запомнили 
-							page.PageSheet.CellsU[$"Layers.Visible" + celIndex].Formula = memoryVisibleCell;
-
-
-
-						}
-
-					}
-
-					// Очищаем ком
-					Marshal.ReleaseComObject(layer);
-
-				}
-				/*
-				foreach (Page item in pagestest)
-				{
-                    selectionDevices.Copy(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors);
-                    item.Paste(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors);
-                    Clipboard.Clear();
-                    Marshal.ReleaseComObject(item);
-
-                }
-				*/
-                Marshal.ReleaseComObject(backPage);
-				onShapeAddedBreak = false;
-			}); th.SetApartmentState(ApartmentState.STA); th.IsBackground = true; th.Start();
-			
-
-		}
 
 
 		// Нам нужен метод, работающий на плане, во время трассровки, назначит линиям User.code 
@@ -1186,138 +614,7 @@ namespace QueenMasterVisio
 			return i;
 		}
 
-		private static void autoConnect(string code, Page page)
-		{
-			Visio.Shape shield = null;
-			List<Visio.Shape> devices = new List<Visio.Shape>();
 
-            if (!WireService.wires.Any(w => w.name == activePlanCode && w.isWire))
-            {
-                MessageBox.Show("Ошибка слоя","Ошибка",MessageBoxButtons.OK,MessageBoxIcon.Warning);
-                return;
-            }
-
-            var selection = page.CreateSelection(Visio.VisSelectionTypes.visSelTypeByLayer,Visio.VisSelectMode.visSelModeSkipSuper,
-			page.Layers.ItemU[activePlanCode]);
-
-			// Ищем фигуры
-            foreach (Visio.Shape shape in selection)
-			{
-				if (shape.Name.Contains("Device") || shape.Name.Contains("Light") || shape.Name.Contains("Camera") || shape.Name.Contains("Sound"))
-				{
-                        devices.Add(shape);
-				}
-			}
-            selection.DeselectAll();
-            // Теперь ищем щит
-            foreach (Visio.Shape shape in page.Shapes)
-                if (shape.Name.Contains("Shield"))
-                    shield = shape;
-
-
-            if (shield == null)
-			{
-				MessageBox.Show("Добавьте 1 щит из фигур",
-			   "Щит не найден",
-			   MessageBoxButtons.OK,
-			   MessageBoxIcon.Warning);
-				return;
-			}
-			else if (devices.Count == 0)
-			{
-				MessageBox.Show("Добавьте хотя бы 1 девайс на план",
-			  "Не найден ни один девайс на плане",
-			  MessageBoxButtons.OK,
-			  MessageBoxIcon.Warning);
-				return;
-			}
-
-			foreach (Visio.Shape shape in devices)
-			{
-				if (!checkConnetctedLinesInDevice(page, shape))
-				{
-					CreateAndGlueConnector(page, shield, shape, activePlanCode);
-                }
-			}
-		}
-		public static void CreateAndGlueConnector(Page page, Visio.Shape fromShape, Visio.Shape toShape, string layerName)
-		{
-			// Костыль
-			rebuildBrake = true;
-            Visio.Shape connector = CreateConnector(page);
-			Debug.WriteLine(connector.Name);
-            GlueConnectorToShapes(connector, fromShape, toShape);
-            rebuildBrake = false;
-            rebuildShape(connector, true);
-
-            //Marshal.ReleaseComObject(connector);
-        }
-        // Костыль
-        public static bool rebuildBrake = false;
-
-        private static Visio.Shape CreateConnector(Page page)
-		{
-			Master connectorMaster = page.Document.Masters["Динамическая соединительная линия"];
-			Visio.Shape connector = page.Drop(connectorMaster, 5, 5);
-			//Marshal.ReleaseComObject(connectorMaster);
-			return connector;
-		}
-
-		private static void GlueConnectorToShapes(Visio.Shape connector, Visio.Shape fromShape, Visio.Shape toShape)
-		{
-			// Получаем первую точку соединения исходной фигуры
-			Cell fromPointX = fromShape.CellsSRC[
-				(short)VisSectionIndices.visSectionConnectionPts,
-				(short)VisRowIndices.visRowConnectionPts,
-				(short)VisCellIndices.visX];
-
-			Cell fromPointY = fromShape.CellsSRC[
-				(short)VisSectionIndices.visSectionConnectionPts,
-				(short)VisRowIndices.visRowConnectionPts,
-				(short)VisCellIndices.visY];
-
-			// Получаем первую точку соединения целевой фигуры
-			Cell toPointX = toShape.CellsSRC[
-				(short)VisSectionIndices.visSectionConnectionPts,
-				(short)VisRowIndices.visRowConnectionPts,
-				(short)VisCellIndices.visX];
-
-			Cell toPointY = toShape.CellsSRC[
-				(short)VisSectionIndices.visSectionConnectionPts,
-				(short)VisRowIndices.visRowConnectionPts,
-				(short)VisCellIndices.visY];
-
-			connector.CellsU["BeginX"].GlueTo(fromPointX);
-			connector.CellsU["BeginY"].GlueTo(fromPointY);
-
-			connector.CellsU["EndX"].GlueTo(toPointX);
-			connector.CellsU["EndY"].GlueTo(toPointY);
-		}
-
-		private static bool checkConnetctedLinesInDevice(Page page, Visio.Shape shape)
-		{
-			foreach (Visio.Shape connector in page.Shapes.Cast<Visio.Shape>().Where(s => Checker.isLine(s)))
-			{
-				if (isShapeOnLayer(connector, activePlanCode))
-				{
-					Visio.Shape beginShape = connector.Connects[1].ToSheet;  // Индекс 1 = Begin
-					Visio.Shape endShape = connector.Connects[2].ToSheet;    // Индекс 2 = End
-
-					// Проверяем, подключен ли коннектор к целевой фигуре
-					if (beginShape == shape || endShape == shape)
-						return true;
-				}
-			}
-			return false;
-		}
-
-		private static bool isShapeOnLayer(Visio.Shape shape, string layerName)
-		{
-			if (shape.Layer[2].Name == layerName)
-				return true;
-
-			return false;
-		}
 
 
 		private static void newLayerDetect(Visio.Page page)
@@ -1418,11 +715,11 @@ namespace QueenMasterVisio
 
 		public void onShapeAdded(Visio.Shape shape)
 		{
-			// Не вызываем если хоть кто то запретил это делать
-			if (onShapeAddedBreak)
+            // Не вызываем если хоть кто то запретил это делать
+            if(VisioEventSuppressor.IsShapeAddedSuppressed)
 				return;
 
-			if (Checker.isLine(shape))
+            if (CheckerService.isLine(shape))
 			{
 				if (GetActivePageCode() == "Plan") // ??
 				{
@@ -1576,7 +873,7 @@ namespace QueenMasterVisio
 
                     foreach (Visio.Shape candidate in shape.ContainingPage.Shapes)
                     {
-                        if (Checker.isLine(candidate) && candidate.ID != shape.ID)
+                        if (CheckerService.isLine(candidate) && candidate.ID != shape.ID)
                         {
 
 							if ((candidate.CellsU["BeginX"].ResultIU == shape.CellsU["BeginX"].ResultIU && candidate.CellsU["BeginY"].ResultIU == shape.CellsU["BeginY"].ResultIU) ||
@@ -1627,7 +924,7 @@ namespace QueenMasterVisio
 
             foreach (Visio.Shape shape in line.Application.ActivePage.Shapes.Cast<Visio.Shape>().Reverse())
 			{
-                if (Checker.isLine(shape))
+                if (CheckerService.isLine(shape))
                 {
                     //Wire wireShape = MyPage.wires.FirstOrDefault(w => w.color == shape.CellsU["LineColor"].FormulaU);
 

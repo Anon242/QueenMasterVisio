@@ -1,6 +1,6 @@
 ﻿using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Visio;
-using QueenMasterVisio.MainLent;
+using QueenMasterVisio.Ribbon;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -13,7 +13,7 @@ namespace QueenMasterVisio
 {
     public partial class ThisAddIn
     {
-        public MyPage myPage;
+        public VisioEventAggregator myPage;
         MainLentXml myRibbonTracer;
 
         private Explorer pageExplorer;
@@ -120,6 +120,7 @@ namespace QueenMasterVisio
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {
+
         }
 
         private void OnBeforeDocumentClose(Document doc)
@@ -135,7 +136,7 @@ namespace QueenMasterVisio
             CreateEmbeddedWindow();
             
 
-            myPage = new MyPage(this.Application, doc.Name, pageExplorer);
+            myPage = new VisioEventAggregator(this.Application, doc.Name, pageExplorer);
             myRibbonTracer.SetMyPage(myPage);
             this.Application.ShapeChanged += new Visio.EApplication_ShapeChangedEventHandler(myPage.onShapeChanged);
             this.Application.ShapeAdded += new Visio.EApplication_ShapeAddedEventHandler(myPage.onShapeAdded);
@@ -147,7 +148,7 @@ namespace QueenMasterVisio
 
         protected override Microsoft.Office.Core.IRibbonExtensibility CreateRibbonExtensibilityObject()
         {
-            myRibbonTracer = new MainLent.MainLentXml();
+            myRibbonTracer = new MainLentXml();
             return myRibbonTracer;
           
         }

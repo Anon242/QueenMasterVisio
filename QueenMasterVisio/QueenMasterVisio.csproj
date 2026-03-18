@@ -205,9 +205,14 @@
     can be found.
   -->
   <ItemGroup>
-    <Compile Include="BackgroundWorker.cs" />
-    <Compile Include="CableSchedule.cs" />
-    <Compile Include="Checker.cs" />
+    <Compile Include="Core\Helpers\VisioEventSuppressor.cs" />
+    <Compile Include="Core\Managers\PageManager.cs" />
+    <Compile Include="Core\Services\BackgroundWorker.cs" />
+    <Compile Include="Core\Services\CableService.cs" />
+    <Compile Include="Core\Services\CheckerService.cs" />
+    <Compile Include="Core\Handlers\RibbonCommandHandler.cs" />
+    <Compile Include="Core\Helpers\VisioExtensions.cs" />
+    <Compile Include="Core\Services\WireAutoConnectionService.cs" />
     <Compile Include="DeviceControl\DeviceCheck\DeviceCheck.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -220,18 +225,15 @@
     <Compile Include="Explorer.Designer.cs">
       <DependentUpon>Explorer.cs</DependentUpon>
     </Compile>
-    <Compile Include="MainLent\ButtonsControl.cs" />
-    <Compile Include="MainLent\MainLentXml.cs" />
-    <Compile Include="MyPage.cs" />
-    <Compile Include="MyRibbonTracer.cs" />
-    <Compile Include="PageElement.cs" />
-    <Compile Include="PageTypes.cs" />
+    <Compile Include="Ribbon\MainLentXml.cs" />
+    <Compile Include="Events\VisioEventAggregator.cs" />
+    <Compile Include="Core\Models\PageElement.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Tools.cs" />
-    <Compile Include="Wire.cs" />
-    <Compile Include="WireService.cs" />
+    <Compile Include="Core\Helpers\Tools.cs" />
+    <Compile Include="Core\Models\Wire.cs" />
+    <Compile Include="Core\Services\WireService.cs" />
     <EmbeddedResource Include="DeviceControl\DeviceCheck\DeviceCheck.resx">
       <DependentUpon>DeviceCheck.cs</DependentUpon>
     </EmbeddedResource>
@@ -279,8 +281,9 @@
     <None Include="Resources\2400441.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="MainLent\MainLentXml.xml" />
+    <EmbeddedResource Include="Ribbon\MainLentXml.xml" />
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

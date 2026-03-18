@@ -28,7 +28,7 @@ using Office = Microsoft.Office.Core;
 // Дополнительные сведения можно найти в XML-документации для ленты в справке набора средств Visual Studio для Office.
 
 
-namespace QueenMasterVisio.MainLent
+namespace QueenMasterVisio.Ribbon
 {
     [ComVisible(true)]
     public class MainLentXml : Office.IRibbonExtensibility
@@ -36,7 +36,7 @@ namespace QueenMasterVisio.MainLent
         private static Office.IRibbonUI ribbon;
 
         public static bool ribbonVisible = false;
-        MyPage myPage;
+        VisioEventAggregator myPage;
 
         public MainLentXml()
         {
@@ -61,7 +61,7 @@ namespace QueenMasterVisio.MainLent
             myPage.onRibbonTracerBtn(control);
         }
 
-        public void SetMyPage(MyPage _myPage)
+        public void SetMyPage(VisioEventAggregator _myPage)
         {
             myPage = _myPage;
         }
@@ -90,7 +90,7 @@ namespace QueenMasterVisio.MainLent
 
         public string GetCustomUI(string ribbonID)
         {
-            return GetResourceText("QueenMasterVisio.MainLent.MainLentXml.xml");
+            return GetResourceText("QueenMasterVisio.Ribbon.MainLentXml.xml");
         }
 
         #endregion
