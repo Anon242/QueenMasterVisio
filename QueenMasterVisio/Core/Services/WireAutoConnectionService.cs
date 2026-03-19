@@ -72,7 +72,7 @@ namespace QueenMasterVisio.Core.Services
 
         private static bool checkConnetctedLinesInDevice(Page page, Visio.Shape shape)
         {
-            foreach (Visio.Shape connector in page.Shapes.Cast<Visio.Shape>().Where(s => CheckerService.isLine(s)))
+            foreach (Visio.Shape connector in page.Shapes.Cast<Visio.Shape>().Where(s => s.IsLine()))
             {
                 if (connector.Layer[2].Name == page.GetPlanCode())
                 {

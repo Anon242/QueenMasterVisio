@@ -19,11 +19,12 @@ using System.Xml.Linq;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolBar;
 using static System.Net.Mime.MediaTypeNames;
 using System.Collections.ObjectModel;
+using QueenMasterVisio.Core.Helpers;
 
-namespace QueenMasterVisio
+namespace QueenMasterVisio.Core.Services
 {
     // Класс для собирания информации с документа для импорта в csv 
-    internal class CableSchedule
+    internal class CableService
     {
         /*
 
@@ -57,7 +58,7 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
 
             foreach (Visio.Shape shape in page.Shapes)
             {
-                if(Checker.isLine(shape))
+                if(shape.IsLine())
                 {
                     if (shape.Connects.Count >= 2)
                     {

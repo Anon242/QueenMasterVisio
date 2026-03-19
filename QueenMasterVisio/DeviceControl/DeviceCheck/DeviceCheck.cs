@@ -1,17 +1,11 @@
-﻿using Microsoft.Office.Interop.Visio;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Text;
-using System.Linq;
-using System.Reflection.Emit;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using Color = System.Drawing.Color;
 using Visio = Microsoft.Office.Interop.Visio;
+using QueenMasterVisio.Core.Services;
 
 
 namespace QueenMasterVisio.DeviceCheck
@@ -67,6 +61,7 @@ namespace QueenMasterVisio.DeviceCheck
             if (targetPage != null)
             {
                 string text = CableService.Generate(targetPage);
+                
 
                 // Вытщаим из таблицы только строки с нашим девайсом
                 foreach (string col in text.Split('\n'))

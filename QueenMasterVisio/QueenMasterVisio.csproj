@@ -206,12 +206,16 @@
   -->
   <ItemGroup>
     <Compile Include="Core\Helpers\VisioEventSuppressor.cs" />
+    <Compile Include="Core\Managers\DocumentManager.cs" />
+    <Compile Include="Core\Managers\LayerManager.cs" />
     <Compile Include="Core\Managers\PageManager.cs" />
+    <Compile Include="Core\Managers\ShapeManager.cs" />
     <Compile Include="Core\Services\BackgroundWorker.cs" />
     <Compile Include="Core\Services\CableService.cs" />
     <Compile Include="Core\Services\CheckerService.cs" />
     <Compile Include="Core\Handlers\RibbonCommandHandler.cs" />
     <Compile Include="Core\Helpers\VisioExtensions.cs" />
+    <Compile Include="Core\Services\RedSquareCreator.cs" />
     <Compile Include="Core\Services\WireAutoConnectionService.cs" />
     <Compile Include="DeviceControl\DeviceCheck\DeviceCheck.cs">
       <SubType>Form</SubType>
@@ -219,10 +223,10 @@
     <Compile Include="DeviceControl\DeviceCheck\DeviceCheck.Designer.cs">
       <DependentUpon>DeviceCheck.cs</DependentUpon>
     </Compile>
-    <Compile Include="Explorer.cs">
+    <Compile Include="Explorer\Explorer.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Explorer.Designer.cs">
+    <Compile Include="Explorer\Explorer.Designer.cs">
       <DependentUpon>Explorer.cs</DependentUpon>
     </Compile>
     <Compile Include="Ribbon\MainLentXml.cs" />
@@ -237,7 +241,7 @@
     <EmbeddedResource Include="DeviceControl\DeviceCheck\DeviceCheck.resx">
       <DependentUpon>DeviceCheck.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Explorer.resx">
+    <EmbeddedResource Include="Explorer\Explorer.resx">
       <DependentUpon>Explorer.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">

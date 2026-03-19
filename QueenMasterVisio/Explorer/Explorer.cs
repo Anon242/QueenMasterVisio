@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Color = System.Drawing.Color;
@@ -35,6 +36,8 @@ namespace QueenMasterVisio
             Color.FromArgb(255,51,160,44),
             Color.FromArgb(255,31,120,180),
         };
+
+
 
         public Explorer(Visio.Application application, Visio.Window _customWindow)
         {
@@ -119,7 +122,7 @@ namespace QueenMasterVisio
                         draggedPage.Index = (short)(targePage.Index - 1);
                     }
                     //MoveListViewItem(draggedItem, targetItem);
-                    UpdateExplorer(visioApp.ActiveDocument);
+                    UpdateExplorer();
 
                 }
             }
@@ -189,16 +192,34 @@ namespace QueenMasterVisio
         // Документ опен
         // И раз в 5 сек проверяем все страницы
 
-        public void UpdateExplorer(Document doc)
+        private bool _isUpdating = false;
+        private readonly object _updateLock = new object();
+
+        public void UpdateExplorer()
         {
-            Thread th = new Thread(() =>
+            lock (_updateLock)
             {
-                
-                UpdateExplorerElements();
-               
+                if (_isUpdating)
+                {
+                    return;
+                }
+                _isUpdating = true;
+            }
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    UpdateExplorerElements();
+                }
+                finally
+                {
+                    lock (_updateLock)
+                    {
+                        _isUpdating = false;
+                    }
+                }
             });
-            th.IsBackground = true;
-            th.Start();
         }
 
         private void GoToPageByNameU(string nameU)
@@ -636,7 +657,7 @@ namespace QueenMasterVisio
             if (e.KeyCode == Keys.R || (char)e.KeyCode == 'к' || (char)e.KeyCode == 'К')
             {
                 customWindow.Caption = "Проводник по документам";
-                UpdateExplorer(visioApp.ActiveDocument);
+                UpdateExplorer();
             }
         }
 
@@ -854,7 +875,7 @@ namespace QueenMasterVisio
 
                     }
                 }
-                UpdateExplorer(visioApp.ActiveDocument);
+                UpdateExplorer();
 
             }
         }

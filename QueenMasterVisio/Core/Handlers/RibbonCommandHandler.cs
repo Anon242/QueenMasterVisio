@@ -1,14 +1,14 @@
 ﻿using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Visio;
 using QueenMasterVisio.Core.Helpers;
-using System;
-using System.Collections.Generic;
+using QueenMasterVisio.Core.Managers;
+using QueenMasterVisio.Core.Services;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace QueenMasterVisio.Core.Handlers
 {
@@ -23,188 +23,159 @@ namespace QueenMasterVisio.Core.Handlers
 
         }
 
-        /*
+        
         public void onRibbonTracerBtnDevice(IRibbonControl control)
         {
             var visioApp = Globals.ThisAddIn.Application;
             var activePage = visioApp.ActivePage;
             if (control.Id.Contains("btn"))
-                onButtonPressedDevice(activePage, control.Id.Substring(3));
+                onButtonPressedDevice(activePage, control.Id);
 
         }
-        */
+        
 
         private void onButtonPressedPlan(Page page, string buttonId)
         {
             if (!page.IsPlanPage())
                 return;
 
-            string activePlanCode = page.GetPlanCode();
 
             switch (buttonId)
             {
-                case "AutoConnect":
-                    if (activePlanCode != "Plan" && activePlanCode != "All")
+                case "btnAutoConnect":
+                    if (page.GetPlanCode() != "Plan" && page.GetPlanCode() != "All")
                         Services.WireAutoConnectionService.autoConnect(page);
                     break;
-                default:
+                case "btnReload":
                     break;
-            }
-
-            if (buttonId == "AutoConnect")
-            {
-
-            }
-            else if (buttonId == "Reload")
-            {
-                onReloadBtnPressed(page);
-            }
-            else if (buttonId == "CreatePlan")
-            {
-                onCreatePlanPressed(page);
-            }
-            // Проверка по второму символу, осторожно
-            else if (buttonId[1] == 'x' || buttonId == "Plan" || buttonId == "All" || buttonId.Contains("Other"))
-            {
-                activePlanCode = buttonId;
-                onLayersBtnPressed(page);
-            }
-            else if (buttonId == "Lock" && GetActivePageCode() != "Plan")
-            {
-                foreach (Visio.Shape shape in page.Shapes)
-                {
-                    if (CheckerService.isLine(shape))
-                    {
-                        Tools.CellFormulaSet(shape, "ConFixedCode", "2");
-                    }
-                }
-                setRedSquareOnPage(page, true);
-                lockAllLayers(page);
-            }
-            else if (buttonId == "Unlock" && GetActivePageCode() != "Plan")
-            {
-                unlockAllLayers(page);
-                setRedSquareOnPage(page, false);
-            }
-            else if (buttonId == "UpdatePage" && GetActivePageCode() == "planAuto")
-            {
-                redrawPageAuto(page);
-            }
-            else if (buttonId == "DevicesCheck" && GetActivePageCode() == "Plan")
-            {
-                CheckerService.CheckDevicesInPlan(page); // Не верно 
-            }
-            else if (buttonId == "CopyAll")
-            {
-                try
-                {
-                    // ЭТО ВРЕМЯНКА, КОСТЫЛЬ БЛЯТЬ
-                    foreach (Visio.Shape shape in page.Shapes)
-                    {
-                        if (CheckerService.isLine(shape))
-                        {
-                            Tools.CellFormulaSet(shape, "ConFixedCode", "2");
-                        }
-                    }
-                    unlockAllLayers(page);
-                    Selection selection = page.Application.ActiveWindow.Selection;
-                    selection.SelectAll();
-                    selection.Copy(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors | Visio.VisCutCopyPasteCodes.visCopyPasteDontAddToContainers);
-                    lockAllLayers(page);
-                    selection.DeselectAll();
-                }
-                catch
-                {
-
-
-                }
-            }
-            else if (buttonId == "PasteAll")
-            {
-
-                try
-                {
-                    onShapeAddedBreak = true;
-                    page.Paste(Visio.VisCutCopyPasteCodes.visCopyPasteNoTranslate | Visio.VisCutCopyPasteCodes.visCopyPasteNoHealConnectors | Visio.VisCutCopyPasteCodes.visCopyPasteDontAddToContainers);
-                    setRedSquareOnPage(page, false);
-                    Clipboard.Clear();
-                    Selection selection = page.Application.ActiveWindow.Selection;
-                    selection.SelectAll();
-                    selection.ConvertToGroup();
-                    onShapeAddedBreak = false;
-                }
-                catch
-                {
-
-
-                }
-                /*
-				if (masterLineCounts == 0) {
-					bool buffer = true;
-					while (buffer) {
-						buffer = false;
-                        foreach (Master master in page.Document.Masters)
-							if (master.Name.Contains("Динамическая соединительная линия."))
-							{
-								buffer = true;
-                                master.Delete();
-							}
-					}
-				}
-				*/
-            }
-            // В буфер обмена вставляем строки 
-            else if (buttonId == "GetLineData")
-            {
-                //MessageBox.Show(CableSchedule.Generate(page),"Test",MessageBoxButtons.OK);
-                string str = CableService.Generate(page);
-                Clipboard.SetText(str);
-                Debug.WriteLine(str);
-
-            }
-            else if (buttonId == "SetHyperLinks")
-            {
-                SetHyperLinks(page);
-            }
-            else if (buttonId == "LookDevices")
-            {
-                explorer.LookDevices(page);
-            }
-            else if (buttonId == "LookDevicesOnPlan")
-            {
-                // Получаем соединения с плана находясь на странице устройства 
-                LookDevicesOnPlan(page);
-            }
-            else if (buttonId == "CreateNewDevice")
-            {
-                // Создать новый девайс
-                Page activePage = page;
-                Page newPage = page.Document.Pages.Add();
-                app.ActiveWindow.Page = activePage;
-                short pageIndex = (short)(page.Document.Pages.Count - 1);
-                newPage.Name = explorer.ShowRenameDialog("G" + pageIndex);
-
-                if (newPage.Name[0] == 'G')
-                {
-                    // Делаем что она была перед первым светом
-                    foreach (Page _page in page.Document.Pages)
-                    {
-                        Regex regexLight = new Regex(@"^L\d");
-                        if (regexLight.IsMatch(_page.Name))
-                        {
-                            newPage.Index = _page.Index;
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    newPage.Index = (short)(pageIndex);
-                }
-
-                app.ActiveWindow.Page = newPage;
+                //////////////////// Слои
+                case "btnAll":
+                case "btnPlan":
+                case "btnOther_1":
+                case "btnOther_2":
+                case "btnPx":
+                case "btnEx":
+                case "btnRx":
+                case "btnDx":
+                case "btnCx":
+                case "btnSx":
+                case "btnYx":
+                case "btnVx":
+                case "btnLx":
+                case "btnAx":
+                    // Если будет проблема, тогда будем хранить план код в User.Shape
+                    PageManager.SetOptionsAllPlanlayer(page, buttonId);
+                    break;
+                //////////////////// Слои
             }
         }
 
+        private void onButtonPressedDevice(Page page, string buttonId)
+        {
+
+            switch (buttonId)
+            {
+                case "btnLock":
+                    if (page.IsPlanPage())
+                        return;
+
+                    PageManager.LockOrUnlockLayer(page);
+                    break;
+                case "btnUpdatePage":
+                    if (!page.IsAutoTracePage())
+                        return;
+                    
+                    PageManager.redrawPageAuto(page);
+                    break;
+
+                case "btnCreatePlan":
+                    PageManager.CreateNewPlan(page);
+                    
+                    break;
+                case "btnDevicesCheck":
+                    if (!page.IsPlanPage())
+                        return;
+                    //CheckerService.CheckDevicesInPlan(page); // Не верно 
+                    break;
+                case "btnCopyAll":
+                    try
+                    {
+                        PageManager.LockAllLayers(page,false);
+                        Selection selection = page.Application.ActiveWindow.Selection;
+                        selection.SelectAll();
+                        selection.Copy(VisCutCopyPasteCodes.visCopyPasteNoTranslate | VisCutCopyPasteCodes.visCopyPasteNoHealConnectors | VisCutCopyPasteCodes.visCopyPasteDontAddToContainers);
+                        selection.DeselectAll();
+                    }
+                    catch{}
+                    break;
+
+                case "btnPasteAll":
+                  
+                    try
+                    {
+
+                        using (VisioEventSuppressor.SuppressShapeAdded())
+                        {
+                            
+                            // Страница заблокирована
+                            if (RedSquareCreator.RedSquareGetLayer(page) != null)
+                                return;
+                            // Нет наших данных в буфере обмена
+                            if (!(Clipboard.ContainsData("Visio 11.0 Shapes") || Clipboard.ContainsData("Visio 15.0 Shapes") || Clipboard.ContainsData("Visio 15.0 Text")))
+                                return;
+
+                             page.Paste(VisCutCopyPasteCodes.visCopyPasteNoTranslate | VisCutCopyPasteCodes.visCopyPasteNoHealConnectors | VisCutCopyPasteCodes.visCopyPasteDontAddToContainers);
+                            Clipboard.Clear();
+
+                            // На случай если мы копировали с заблоканого слоя
+                            RedSquareCreator.RedSquareDelete(page);
+                           
+                        }
+                        Thread.Sleep(1300);
+                    }
+                    catch{}
+                   
+
+                    break;
+                case "btnGetLineData":
+                    //MessageBox.Show(CableSchedule.Generate(page),"Test",MessageBoxButtons.OK);
+                    //string str = CableService.Generate(page);
+                    //Clipboard.SetText(str);
+                    //Debug.WriteLine(str);
+                    break;
+                case "btnSetHyperLinks":
+                    //SetHyperLinks(page);
+                    break;
+                case "btnLookDevices":
+                    //explorer.LookDevices(page);
+                    break;
+                case "btnLookDevicesOnPlan":
+                    //LookDevicesOnPlan(page);
+                    break;
+                case "btnCreateNewDevice":
+                    short pageIndex = (short)(page.Document.Pages.Count - 1);
+
+                    Page newPage = DocumentManager.CreateNewPage(VisioEventAggregator.explorer.ShowRenameDialog("G" + pageIndex));
+                    
+                    if (newPage.Name[0] == 'G')
+                    {
+                        // Делаем что она была перед первым светом
+                        foreach (Page _page in page.Document.Pages)
+                        {
+                            Regex regexLight = new Regex(@"^L\d");
+                            if (regexLight.IsMatch(_page.Name))
+                            {
+                                newPage.Index = _page.Index;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        newPage.Index = (short)(pageIndex);
+                    }
+                    break;
+            }
+        }
     }
 }

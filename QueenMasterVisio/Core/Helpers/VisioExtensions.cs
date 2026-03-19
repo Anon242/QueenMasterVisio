@@ -1,10 +1,12 @@
 ﻿using Microsoft.Office.Interop.Visio;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace QueenMasterVisio.Core.Helpers
 {
@@ -66,25 +68,71 @@ namespace QueenMasterVisio.Core.Helpers
             page.PageSheet.CellsU[$"User.{cellName}"].FormulaU = $"\"{value}\"";
         }
 
+        
+
+        /// <summary>Установить Prop-ячейку (создаёт автоматически, если нет)</summary>
+        public static void SetPropCell(this Page page, string cellName, string value, string label)
+        {
+            const short section = (short)VisSectionIndices.visSectionProp;
+            if (!page.HasCell(cellName))
+            {
+                page.PageSheet.AddSection(section);
+                short row = (short)page.PageSheet.AddNamedRow(section, cellName, (short)VisRowTags.visTagDefault);
+                page.PageSheet.CellsSRC[(short)VisSectionIndices.visSectionProp, row, (short)VisCellIndices.visUserValue].FormulaU = $"\"{value}\"";
+                page.PageSheet.CellsSRC[(short)VisSectionIndices.visSectionProp, row, (short)VisCellIndices.visCustPropsLabel].FormulaU = $"\"{label}\"";
+            }
+
+        }
+
+        /// <summary>
+        /// Получает слой страницы по имени (без учёта регистра)
+        /// Возвращает null, если слой с таким именем не найден
+        /// </summary>
+        public static Layer GetLayerByName(this Page page, string layerName)
+        {
+            if (page == null || string.IsNullOrWhiteSpace(layerName))
+                return null;
+
+            foreach (Layer layer in page.Layers)
+            {
+                if (string.Equals(layer.Name, layerName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(layer.NameU, layerName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return layer;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Получает слой по имени или создаёт новый, если его нет
+        /// </summary>
+        public static Layer GetOrCreateLayer(this Page page, string layerName)
+        {
+            if (string.IsNullOrWhiteSpace(layerName))
+                throw new ArgumentException("Имя слоя не может быть пустым", nameof(layerName));
+
+            Layer layer = page.GetLayerByName(layerName); // можно вызвать вариант 1
+
+            if (layer == null)
+            {
+                layer = page.Layers.Add(layerName);
+
+            }
+
+            return layer;
+        }
+
         /// <summary>Быстрые проверки типа страницы</summary>
-        public static bool IsPlanPage(this Page page) => page.GetCellFormulaU("pageCode") == "Plan";
-        public static bool IsAutoTracePage(this Page page) => page.GetCellFormulaU("pageCode") == "planAuto";
+        public static bool IsPlanPage(this Page page) => page.GetCellFormulaU("User.pageCode") == "Plan";
+        public static bool IsAutoTracePage(this Page page) => page.GetCellFormulaU("User.pageCode") == "planAuto";
         public static bool IsBackgroundPage(this Page page) => page.Background != 0;
 
         /// <summary>Получить код страницы (аналог твоего getPageCode)</summary>
-        public static string GetPageCode(this Page page) => page.GetCellFormulaU("pageCode");
+        public static string GetPageCode(this Page page) => page.GetCellFormulaU("User.pageCode");
         public static string GetPlanCode(this Page page) => page._GetPlanCode();
 
-        /// <summary>Заблокировать/разблокировать все слои</summary>
-        public static void LockAllLayers(this Page page, bool lockState = true)
-        {
-            for (short i = 0; i < page.Layers.Count; i++)
-            {
-                string index = i == 0 ? "" : "[" + (i + 1) + "]";
-                page.PageSheet.Cells[$"Layers.Locked{index}"].Formula = lockState ? "1" : "0";
-                page.PageSheet.Cells[$"Layers.Active{index}"].Formula = "0";
-            }
-        }
 
         /// <summary>Включить/выключить печать всех слоёв (кроме Plan)</summary>
         public static void SetPrintOnLayers(this Page page, bool print)
@@ -98,6 +146,10 @@ namespace QueenMasterVisio.Core.Helpers
             }
         }
 
+ 
+
+
+
         #endregion
 
         #region === Shape Extensions ===
@@ -106,8 +158,8 @@ namespace QueenMasterVisio.Core.Helpers
         public static bool IsLine(this Shape shape)
         {
             return shape.Master?.NameU.Contains("Динамическая соединительная линия") == true ||
-                   shape.Name.Contains("Dynamic connector") ||
-                   Checker.isLine(shape); // можно оставить твой Checker пока
+                   shape.Name.Contains("Dynamic connector") || 
+                   shape.Name.Contains("Динамическая соединительная линия");
         }
 
         /// <summary>Это устройство/щит/свет и т.д.</summary>
@@ -159,17 +211,17 @@ namespace QueenMasterVisio.Core.Helpers
         #region === Layer Extensions ===
 
         /// <summary>Установить видимость, печать, блокировку и т.д. одной строкой</summary>
-        public static void SetOptions(this Layer layer, bool visible, bool print, bool active, bool locked, bool snap, bool glue)
+        public static void SetOptions(this Layer layer, int visible, int print, int active, int locked, int snap, int glue)
         {
             Page page = layer.Page;
             string index = layer.Index == 0 ? "" : "[" + layer.Index + "]";
 
-            page.PageSheet.Cells[$"Layers.Visible{index}"].Formula = visible ? "1" : "0";
-            page.PageSheet.Cells[$"Layers.Print{index}"].Formula = print ? "1" : "0";
-            page.PageSheet.Cells[$"Layers.Active{index}"].Formula = active ? "1" : "0";
-            page.PageSheet.Cells[$"Layers.Locked{index}"].Formula = locked ? "1" : "0";
-            page.PageSheet.Cells[$"Layers.Snap{index}"].Formula = snap ? "1" : "0";
-            page.PageSheet.Cells[$"Layers.Glue{index}"].Formula = glue ? "1" : "0";
+            page.PageSheet.Cells[$"Layers.Visible{index}"].Formula = visible.ToString();
+            page.PageSheet.Cells[$"Layers.Print{index}"].Formula = print.ToString();
+            page.PageSheet.Cells[$"Layers.Active{index}"].Formula = active.ToString();
+            page.PageSheet.Cells[$"Layers.Locked{index}"].Formula = locked.ToString();
+            page.PageSheet.Cells[$"Layers.Snap{index}"].Formula = snap.ToString();
+            page.PageSheet.Cells[$"Layers.Glue{index}"].Formula = glue.ToString();
         }
 
         /// <summary>Добавить фигуру на слой безопасно</summary>
@@ -178,6 +230,7 @@ namespace QueenMasterVisio.Core.Helpers
             try { layer.Add(shape, allow1D ? (short)1 : (short)0); }
             catch { }
         }
+
 
         #endregion
 

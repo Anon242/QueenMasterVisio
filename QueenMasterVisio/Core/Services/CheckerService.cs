@@ -22,7 +22,7 @@ using System.Collections.ObjectModel;
 using System.Collections;
 
 
-namespace QueenMasterVisio
+namespace QueenMasterVisio.Core.Services
 {
     // Это класс к которому обращается BackroundWorker и главный класс
     // Он содержит методы проверок страниц, соеденений и тд

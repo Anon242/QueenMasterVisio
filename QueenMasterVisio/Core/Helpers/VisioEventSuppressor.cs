@@ -26,14 +26,17 @@ namespace QueenMasterVisio.Core.Helpers
         // Внутренний класс-супрессор
         private sealed class ShapeAddedSuppressor : IDisposable
         {
+            short oldEvents = VisioEventAggregator.app.EventsEnabled;
             public ShapeAddedSuppressor()
             {
                 _shapeAddedCount++;
+                VisioEventAggregator.app.Application.EventsEnabled = 0;
             }
 
             public void Dispose()
             {
                 _shapeAddedCount--;
+                VisioEventAggregator.app.EventsEnabled = oldEvents;
             }
         }
     }

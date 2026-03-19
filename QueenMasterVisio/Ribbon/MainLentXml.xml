@@ -4,15 +4,14 @@
 		<tabs>
 			<tab id="MyTab2" label="Queen мастер">
 				<group id="MyGroup6" label="Создание">
-					<button id="btnCreatePlan" label="Создать из этой страницы план" size="normal" onAction="OnButtonClickDevice" imageMso="ZoomOnePage"/>
+					<button id="btnCreatePlan" label="Создать план" size="normal" onAction="OnButtonClickDevice" imageMso="ZoomOnePage"/>
 					<button id="btnUpdatePage" label="Обновить страницу" size="normal" onAction="OnButtonClickDevice" imageMso="AutoFormatChange"/>
 
 					<button id="btnCreateNewDevice" label="Создать новый девайс" size="large" onAction="OnButtonClickDevice" imageMso="OrganizationChartSelectLevel"/>
 
 				</group>
 				<group id="MyGroup61" label="Блокировка">
-					<button id="btnLock" label="Заблокировать страницу" size="large" onAction="OnButtonClickDevice" imageMso="ColumnActionsReadOnly"/>
-					<button id="btnUnlock" label="Разблокировать страницу" size="large" onAction="OnButtonClickDevice" imageMso="CustomizeMySite"/>
+					<button id="btnLock" label="Lock/Unlock страницу" size="large" onAction="OnButtonClickDevice" imageMso="ColumnActionsReadOnly"/>
 				</group>
 				<group id="MyGroup62" label="Копирование">
 					<button id="btnCopyAll" label="Скопировать страницу" size="large" onAction="OnButtonClickDevice" imageMso="Copy"/>
@@ -45,20 +44,20 @@
 			<tab id="MyTab" label="План трассеров" getVisible="GetTabVisible">
 				<group id="MyGroup2" label="Слои">
 					<box id="btnGroup" boxStyle="horizontal">
-						<button id="btnPlan" label="План" size="large" onAction="OnButtonClickPlan" imageMso="DesignMode"/>
-						<button id="btnPx" label="Px" size="large" onAction="OnButtonClickPlan" imageMso="ShapeLightningBolt"/>
-						<button id="btnEx" label="Ex" size="large" onAction="OnButtonClickPlan" imageMso="QuickPartsInsertFromOnline"/>
-						<button id="btnRx" label="Rx" size="large" onAction="OnButtonClickPlan" imageMso="OrganizationChartSelectAllConnectors"/>
-						<button id="btnDx" label="Dx" size="large" onAction="OnButtonClickPlan" imageMso="AutoFormatChange"/>
-						<button id="btnCx" label="Cx" size="large" onAction="OnButtonClickPlan" imageMso="OrganizationChartAutoLayout"/>
-						<button id="btnSx" label="Sx" size="large" onAction="OnButtonClickPlan" imageMso="FileCheckIn"/>
-						<button id="btnYx" label="Yx" size="large" onAction="OnButtonClickPlan" imageMso="ReviewReplyWithChanges"/>
-						<button id="btnVx" label="Vx" size="large" onAction="OnButtonClickPlan" imageMso="RecordsSaveRecord"/>
-						<button id="btnLx" label="Lx" size="large" onAction="OnButtonClickPlan" imageMso="_3DLightingClassic"/>
-						<button id="btnAx" label="Ax" size="large" onAction="OnButtonClickPlan" imageMso="NewContact"/>
-						<button id="btnOther1" label="Разное 1" size="large" onAction="OnButtonClickPlan" imageMso="RightToLeftDocument"/>
-						<button id="btnOther2" label="Разное 2" size="large" onAction="OnButtonClickPlan" imageMso="HeaderFooterPageNumberInsert"/>
-						<button id="btnAll" label="Показать все" size="large" onAction="OnButtonClickPlan" imageMso="CategorizeMenu"/>
+						<button getLabel="GetLayerButtonLabel"  id="btnPlan"  size="large" onAction="OnButtonClickPlan" imageMso="DesignMode"/>
+            <button getLabel="GetLayerButtonLabel"  id="btnPx" size="large" onAction="OnButtonClickPlan" imageMso="ShapeLightningBolt"/>
+            <button getLabel="GetLayerButtonLabel"  id="btnEx" size="large" onAction="OnButtonClickPlan" imageMso="QuickPartsInsertFromOnline"/>
+            <button getLabel="GetLayerButtonLabel"  id="btnRx" size="large" onAction="OnButtonClickPlan" imageMso="OrganizationChartSelectAllConnectors"/>
+            <button getLabel="GetLayerButtonLabel"  id="btnDx" size="large" onAction="OnButtonClickPlan" imageMso="AutoFormatChange"/>
+            <button getLabel="GetLayerButtonLabel"  id="btnCx" size="large" onAction="OnButtonClickPlan" imageMso="OrganizationChartAutoLayout"/>
+            <button getLabel="GetLayerButtonLabel"  id="btnSx" size="large" onAction="OnButtonClickPlan" imageMso="FileCheckIn"/>
+            <button getLabel="GetLayerButtonLabel"  id="btnYx" size="large" onAction="OnButtonClickPlan" imageMso="ReviewReplyWithChanges"/>
+            <button getLabel="GetLayerButtonLabel"  id="btnVx" size="large" onAction="OnButtonClickPlan" imageMso="RecordsSaveRecord"/>
+            <button getLabel="GetLayerButtonLabel"  id="btnLx" size="large" onAction="OnButtonClickPlan" imageMso="_3DLightingClassic"/>
+            <button getLabel="GetLayerButtonLabel"  id="btnAx" size="large" onAction="OnButtonClickPlan" imageMso="NewContact"/>
+            <button getLabel="GetLayerButtonLabel"  id="btnOther_1"  size="large" onAction="OnButtonClickPlan" imageMso="RightToLeftDocument"/>
+            <button getLabel="GetLayerButtonLabel"  id="btnOther_2"  size="large" onAction="OnButtonClickPlan" imageMso="HeaderFooterPageNumberInsert"/>
+            <button getLabel="GetLayerButtonLabel"  id="btnAll"  size="large" onAction="OnButtonClickPlan" imageMso="CategorizeMenu"/>
 					</box>
 				</group>
 				<group id="MyGroup3" label="Инструменты">

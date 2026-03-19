@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using Office = Microsoft.Office.Core;
+using QueenMasterVisio.Core.Handlers;
 
 // TODO:  Выполните эти шаги, чтобы активировать элемент XML ленты:
 
@@ -36,11 +37,12 @@ namespace QueenMasterVisio.Ribbon
         private static Office.IRibbonUI ribbon;
 
         public static bool ribbonVisible = false;
-        VisioEventAggregator myPage;
 
+        RibbonCommandHandler ribbonCommandHandler;
+        static string layerButtonName = "";
         public MainLentXml()
         {
-           
+            ribbonCommandHandler = new RibbonCommandHandler();
         }
 
         public static void RibbonReload(bool vis)
@@ -53,18 +55,26 @@ namespace QueenMasterVisio.Ribbon
         // Сделать отдельный класс который определить кто куда что вызывает
         public void OnButtonClickPlan(IRibbonControl control)
         {
-            myPage.onRibbonTracerBtn(control);
+            ribbonCommandHandler.onRibbonTracerBtnPlan(control);
         }
 
         public void OnButtonClickDevice(IRibbonControl control)
         {
-            myPage.onRibbonTracerBtn(control);
+            ribbonCommandHandler.onRibbonTracerBtnDevice(control);
+
         }
 
-        public void SetMyPage(VisioEventAggregator _myPage)
+        public string GetLayerButtonLabel(IRibbonControl control)
         {
-            myPage = _myPage;
+            string code = control.Id.Replace("btn", "");
+            return (code == layerButtonName) ? (code + "\n+") : code;
         }
+
+        public static void UpdateLayerButtons(string _layerButtonName)
+        {
+            layerButtonName = _layerButtonName;
+        }
+
         public bool GetCheckboxState(IRibbonControl control)
         {
             // Возвращает true для включенного состояния по умолчанию

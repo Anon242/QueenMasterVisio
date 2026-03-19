@@ -1,5 +1,6 @@
 ﻿using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Visio;
+using QueenMasterVisio.Core.Handlers;
 using QueenMasterVisio.Ribbon;
 using System;
 using System.Diagnostics;
@@ -57,13 +58,12 @@ namespace QueenMasterVisio
 
         private void OnPageChanged(Page Page)
         {
-            pageExplorer.UpdateExplorer(Page.Application.ActiveDocument);
+            pageExplorer.UpdateExplorer();
         }
         private void OnPageAdded(Page Page)
         {
-            pageExplorer.UpdateExplorer(Page.Application.ActiveDocument);
+            pageExplorer.UpdateExplorer();
         }
-
 
         private void CreateEmbeddedWindow()
         {
@@ -137,12 +137,11 @@ namespace QueenMasterVisio
             
 
             myPage = new VisioEventAggregator(this.Application, doc.Name, pageExplorer);
-            myRibbonTracer.SetMyPage(myPage);
             this.Application.ShapeChanged += new Visio.EApplication_ShapeChangedEventHandler(myPage.onShapeChanged);
             this.Application.ShapeAdded += new Visio.EApplication_ShapeAddedEventHandler(myPage.onShapeAdded);
             myPage.start();
 
-            pageExplorer.UpdateExplorer(doc);
+            pageExplorer.UpdateExplorer();
 
         }
 
