@@ -105,6 +105,7 @@ namespace QueenMasterVisio.Core.Handlers
                         selection.SelectAll();
                         selection.Copy(VisCutCopyPasteCodes.visCopyPasteNoTranslate | VisCutCopyPasteCodes.visCopyPasteNoHealConnectors | VisCutCopyPasteCodes.visCopyPasteDontAddToContainers);
                         selection.DeselectAll();
+
                     }
                     catch{}
                     break;
@@ -124,7 +125,8 @@ namespace QueenMasterVisio.Core.Handlers
                             if (!(Clipboard.ContainsData("Visio 11.0 Shapes") || Clipboard.ContainsData("Visio 15.0 Shapes") || Clipboard.ContainsData("Visio 15.0 Text")))
                                 return;
 
-                             page.Paste(VisCutCopyPasteCodes.visCopyPasteNoTranslate | VisCutCopyPasteCodes.visCopyPasteNoHealConnectors | VisCutCopyPasteCodes.visCopyPasteDontAddToContainers);
+                            page.Paste(VisCutCopyPasteCodes.visCopyPasteNoTranslate | VisCutCopyPasteCodes.visCopyPasteNoHealConnectors | VisCutCopyPasteCodes.visCopyPasteDontAddToContainers);
+                            
                             Clipboard.Clear();
 
                             // На случай если мы копировали с заблоканого слоя
@@ -150,7 +152,9 @@ namespace QueenMasterVisio.Core.Handlers
                     //explorer.LookDevices(page);
                     break;
                 case "btnLookDevicesOnPlan":
-                    //LookDevicesOnPlan(page);
+                    DeviceCheck.DeviceCheck deviceCheck = new DeviceCheck.DeviceCheck(page.Application);
+                    deviceCheck.Show();
+                    
                     break;
                 case "btnCreateNewDevice":
                     short pageIndex = (short)(page.Document.Pages.Count - 1);

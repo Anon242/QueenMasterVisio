@@ -1,24 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Visio;
-using System.Runtime.InteropServices;
-using Office = Microsoft.Office.Core;
 using Visio = Microsoft.Office.Interop.Visio;
 using System.Diagnostics;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using Page = Microsoft.Office.Interop.Visio.Page;
-using Application = Microsoft.Office.Interop.Visio.Application;
-using System.Reflection.Emit;
-using System.Windows.Forms;
-using System.Xml.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolBar;
-using static System.Net.Mime.MediaTypeNames;
-using System.Collections.ObjectModel;
 
 namespace QueenMasterVisio
 {

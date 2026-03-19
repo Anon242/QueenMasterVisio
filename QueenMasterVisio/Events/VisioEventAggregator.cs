@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -64,13 +65,6 @@ namespace QueenMasterVisio
             }
 
         }
-
-		public void LookDevicesOnPlan(Page page)
-		{
-			DeviceCheck.DeviceCheck deviceCheck = new DeviceCheck.DeviceCheck(app);
-			deviceCheck.Show();
-        }
-
 
         private void SetHyperLinks(Page page)
 		{
@@ -295,10 +289,10 @@ namespace QueenMasterVisio
 
 		public void onShapeAdded(Visio.Shape shape)
 		{
-            // Не вызываем если хоть кто то запретил это делать
-            if(VisioEventSuppressor.IsShapeAddedSuppressed)
+            // Не вызываем если хоть кто то запретил это делать или есть флаг undo
+            if(VisioEventSuppressor.IsShapeAddedSuppressed || shape.Application.IsUndoingOrRedoing)
 				return;
-
+            
 
             if (shape.IsLine())
 			{
@@ -390,23 +384,25 @@ namespace QueenMasterVisio
 				shape.CellsU["LineWeight"].FormulaU = "=IFERROR(ThePage!Prop.Scale*0.5&\"pt\",1)";
             }
 
+
+
             if (shape.Connects.Count == 2)
             {
                 Visio.Shape connectedShapeFrom = shape.Connects[1].ToSheet;
                 Visio.Shape connectedShapeTo = shape.Connects[2].ToSheet;
 
-				string color = "";
-				string cable = "";
+                string color = "";
+                string cable = "";
 
                 // Проверяем если это клемма
                 if (Tools.CellExistsCheck(connectedShapeFrom, "User.Color"))
-				{
-					color = Tools.CellValueGet(connectedShapeFrom,"User.Color");
+                {
+                    color = Tools.CellValueGet(connectedShapeFrom, "User.Color");
                 }
-				// Проверяем может это кабель
-				else if(Tools.CellExistsCheck(connectedShapeFrom, "Prop.Row_1"))
-				{
-                    cable = Tools.CellValueGet(connectedShapeFrom, "Prop.Row_1");	
+                // Проверяем может это кабель
+                else if (Tools.CellExistsCheck(connectedShapeFrom, "Prop.Row_1"))
+                {
+                    cable = Tools.CellValueGet(connectedShapeFrom, "Prop.Row_1");
                 }
 
                 // Проверяем если это клемма
@@ -420,45 +416,58 @@ namespace QueenMasterVisio
                     cable = Tools.CellValueGet(connectedShapeTo, "Prop.Row_1");
                 }
 
-				if (!string.IsNullOrEmpty(color))
-				{
-					// Если цет серый, делаем черным
-					if(color == "RGB(180; 180; 180)")
-						color = "RGB(0;0;0)";
+                if (!string.IsNullOrEmpty(color))
+                {
+                    // Если цет серый, делаем черным
+                    if (color == "RGB(180; 180; 180)")
+                        color = "RGB(0;0;0)";
 
                     shape.CellsU["LineColor"].FormulaU = '"' + color + '"';
-                  
+
 
                 }
                 else
-				{
-
-
-                    foreach (Visio.Shape candidate in shape.ContainingPage.Shapes)
+                {
+                    foreach (Shape candidate in shape.ContainingPage.Shapes)
                     {
                         if (candidate.IsLine() && candidate.ID != shape.ID)
                         {
 
-							if ((candidate.CellsU["BeginX"].ResultIU == shape.CellsU["BeginX"].ResultIU && candidate.CellsU["BeginY"].ResultIU == shape.CellsU["BeginY"].ResultIU) ||
+                            if ((candidate.CellsU["BeginX"].ResultIU == shape.CellsU["BeginX"].ResultIU && candidate.CellsU["BeginY"].ResultIU == shape.CellsU["BeginY"].ResultIU) ||
                                 (candidate.CellsU["EndX"].ResultIU == shape.CellsU["EndX"].ResultIU && candidate.CellsU["EndY"].ResultIU == shape.CellsU["EndY"].ResultIU) ||
                                 (candidate.CellsU["BeginX"].ResultIU == shape.CellsU["EndX"].ResultIU && candidate.CellsU["BeginY"].ResultIU == shape.CellsU["EndY"].ResultIU) ||
                                 (candidate.CellsU["EndX"].ResultIU == shape.CellsU["BeginX"].ResultIU && candidate.CellsU["EndY"].ResultIU == shape.CellsU["BeginY"].ResultIU))
                             {
 
                                 shape.CellsU["LineColor"].FormulaU = candidate.CellsU["LineColor"].FormulaU;
-								shape.CellsU["LinePattern"].FormulaU = candidate.CellsU["LinePattern"].FormulaU;
-								break;
+                                shape.CellsU["LinePattern"].FormulaU = candidate.CellsU["LinePattern"].FormulaU;
+                                break;
                             }
                         }
                     }
-					
-
-
                 }
-
-
-               
             }
+            else 
+            {
+                foreach (Shape candidate in shape.ContainingPage.Shapes)
+                {
+                    if (candidate.IsLine() && candidate.ID != shape.ID)
+                    {
+
+                        if ((candidate.CellsU["BeginX"].ResultIU == shape.CellsU["BeginX"].ResultIU && candidate.CellsU["BeginY"].ResultIU == shape.CellsU["BeginY"].ResultIU) ||
+                            (candidate.CellsU["EndX"].ResultIU == shape.CellsU["EndX"].ResultIU && candidate.CellsU["EndY"].ResultIU == shape.CellsU["EndY"].ResultIU) ||
+                            (candidate.CellsU["BeginX"].ResultIU == shape.CellsU["EndX"].ResultIU && candidate.CellsU["BeginY"].ResultIU == shape.CellsU["EndY"].ResultIU) ||
+                            (candidate.CellsU["EndX"].ResultIU == shape.CellsU["BeginX"].ResultIU && candidate.CellsU["EndY"].ResultIU == shape.CellsU["BeginY"].ResultIU))
+                        {
+
+                            shape.CellsU["LineColor"].FormulaU = candidate.CellsU["LineColor"].FormulaU;
+                            shape.CellsU["LinePattern"].FormulaU = candidate.CellsU["LinePattern"].FormulaU;
+                            break;
+                        }
+                    }
+                }
+            }
+
 
             shape.CellsU["Rounding"].FormulaU = "3 mm";
             shape.CellsU["ShapeRouteStyle"].FormulaU = "17";
