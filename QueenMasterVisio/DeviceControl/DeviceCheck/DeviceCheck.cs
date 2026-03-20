@@ -29,7 +29,7 @@ namespace QueenMasterVisio.DeviceCheck
             Thread th = new Thread(() => { 
             foreach (Visio.Page page in app.ActiveDocument.Pages)
             {
-                string []arr = extractGValues(page.NameU);
+                string []arr = Tools.ExtractGValues(page.NameU);
                 if(arr.Length != 0)
                 {
                     bool res = LookDevicesOnPlan(app.ActivePage);
@@ -51,7 +51,7 @@ namespace QueenMasterVisio.DeviceCheck
             if (dev.Key == null)
                 return false;
 
-            string[] pageNameCodeArray = extractGValues(page.Name);
+            string[] pageNameCodeArray = Tools.ExtractGValues(page.Name);
             string pageNameCode = pageNameCodeArray[0].Replace("G", "");
             string result = "";
 
@@ -109,7 +109,7 @@ namespace QueenMasterVisio.DeviceCheck
         public KeyValuePair<Visio.Page, Visio.Shape> SearchDeviceOnDocument(Visio.Page page)
         {
             KeyValuePair<Visio.Page, Visio.Shape> result = new KeyValuePair<Visio.Page, Visio.Shape>(null, null);
-            string[] pageNameCodeArray = extractGValues(page.Name);
+            string[] pageNameCodeArray = Tools.ExtractGValues(page.Name);
             // Проверяем что это вообще девайс и получаем его G код
             if (pageNameCodeArray.Length == 0)
             {
@@ -152,20 +152,7 @@ namespace QueenMasterVisio.DeviceCheck
             }
             return result;
         }
-        private static string[] extractGValues(string input)
-        {
-            Regex regex = new Regex(@"G\d+(?:\.\d+)?\b");
 
-            MatchCollection matches = regex.Matches(input);
-
-            List<string> result = new List<string>();
-            foreach (Match match in matches)
-            {
-                result.Add(match.Value);
-            }
-
-            return result.ToArray();
-        }
 
     }
 }

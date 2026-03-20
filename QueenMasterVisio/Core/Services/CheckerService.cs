@@ -20,6 +20,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolBar;
 using static System.Net.Mime.MediaTypeNames;
 using System.Collections.ObjectModel;
 using System.Collections;
+using QueenMasterVisio.Core.Helpers;
 
 
 namespace QueenMasterVisio.Core.Services
@@ -27,7 +28,7 @@ namespace QueenMasterVisio.Core.Services
     // Это класс к которому обращается BackroundWorker и главный класс
     // Он содержит методы проверок страниц, соеденений и тд
     // Каждый тест должен возращать List своих значений
-    static internal class Checker
+    static internal class CheckerService
     {
         public static void CheckDevicesInPlan(Page page)
         {
@@ -161,7 +162,7 @@ namespace QueenMasterVisio.Core.Services
                 foreach (Connect connect in shape.FromConnects)
                 {
                     Visio.Shape connectedShape = connect.FromSheet;
-                    if (isLine(connectedShape))
+                    if (connectedShape.IsLine())
                     {
                         // Если найдено
                         if (Tools.CellFormulaGet(connectedShape, "LineColor") == wire.color)
@@ -201,7 +202,7 @@ namespace QueenMasterVisio.Core.Services
             foreach (Connect connect in shape.FromConnects)
             {
                 Visio.Shape connectedShape = connect.FromSheet;
-                if (isLine(connectedShape))
+                if (connectedShape.IsLine())
                 {
                     foreach (Wire wire in excessConnectionList)
                     {
@@ -218,18 +219,6 @@ namespace QueenMasterVisio.Core.Services
 
             return result.Distinct().ToList();
         }
-
-        // Проверяем что это линия
-        public static bool isLine(Visio.Shape shape)
-        {
-            if (shape?.Name != null)
-                return shape.Name.Contains("Динамическая соединительная линия");
-            else return false;
-        }
-        /*
-         * Проверяет существования Cell
-         */
-
 
 
     }

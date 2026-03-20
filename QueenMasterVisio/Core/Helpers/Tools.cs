@@ -2,6 +2,8 @@
 using Microsoft.Office.Interop.Visio;
 using Visio = Microsoft.Office.Interop.Visio;
 using System.Diagnostics;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace QueenMasterVisio
 {
@@ -123,6 +125,21 @@ namespace QueenMasterVisio
         public static double LineLenght(double px1, double py1, double px2, double py2)
         {
             return Math.Sqrt(Math.Pow(px1 - px2, 2) + Math.Pow(py1 - py2, 2));
+        }
+
+        public static string[] ExtractGValues(string input)
+        {
+            Regex regex = new Regex(@"G\d+(?:\.\d+)?\b");
+
+            MatchCollection matches = regex.Matches(input);
+
+            List<string> result = new List<string>();
+            foreach (Match match in matches)
+            {
+                result.Add(match.Value);
+            }
+
+            return result.ToArray();
         }
     }
 }

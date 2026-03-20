@@ -6,11 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using Application = Microsoft.Office.Interop.Visio.Application;
 using Page = Microsoft.Office.Interop.Visio.Page;
 using Visio = Microsoft.Office.Interop.Visio;
 
@@ -20,10 +16,6 @@ namespace QueenMasterVisio
 	public class VisioEventAggregator
 	{
 		public static Application app;
-		string docName;
-		public static string activePageCode = null;
-		public static string activePlanCode = null;
-		static bool onShapeAddedBreak = false;
 		public Collection<string> whiteList = new Collection<string>() { "QueenCallout" };
 		public static Explorer explorer;
         BackgroundWorker backgroundWorker;
@@ -31,7 +23,6 @@ namespace QueenMasterVisio
         public VisioEventAggregator(Application _app, string _name, Explorer _explorer)
 		{
 			app = _app;
-			docName = _name;
             explorer = _explorer;
         }
 
@@ -51,6 +42,7 @@ namespace QueenMasterVisio
 			if (page.IsPlanPage())
 			{
                 Debug.WriteLine("Мы на плане " + page.NameU);
+                MainLentXml.UpdateLayerButtons(page.GetPlanCode());
                 MainLentXml.RibbonReload(true);
 			}
 			else
@@ -66,53 +58,6 @@ namespace QueenMasterVisio
 
         }
 
-        private void SetHyperLinks(Page page)
-		{
-
-            // id and array 
-            List<KeyValuePair<Visio.Page, string[]>> pagesPair = new List<KeyValuePair<Visio.Page, string[]>>();
-            foreach (Page _page in page.Application.ActiveDocument.Pages)
-            {
-                // Если активная страница - пропускаем
-                if (_page?.Name == page.Name) continue;
-
-                // ЧЕК ПО УСТРОЙСТВАМ
-                Regex regex = new Regex(@"^G\d");
-                if (!regex.IsMatch(_page.Name)) continue;
-                //string gCode = page.Name.Split(' ').First();
-                // Номера 
-                pagesPair.Add(new KeyValuePair<Visio.Page, string[]>(_page, extractGValues(_page.Name)));
-                Debug.WriteLine(string.Join(",", extractGValues(_page.Name)));
-
-            }
-            Debug.WriteLine("Получили");
-
-            // Теперь пройдемся по девайсам 
-            foreach (Visio.Shape shape in page.Shapes)
-            {
-                if (!shape.Name.Contains("Device")) continue;
-
-                // Если существует 
-                if (shape.CellExists["Prop.Number", (short)Visio.VisExistsFlags.visExistsAnywhere] != 0)
-                {
-                    string nameValue = shape.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
-                    Debug.WriteLine("девайс " + nameValue);
-
-                    // Если есть совпадение в pagesPair values
-                    foreach (KeyValuePair<Visio.Page, string[]> keyvalue in pagesPair)
-                    {
-                        if (keyvalue.Value.Contains("G" + nameValue))
-                        {
-                            shape.AddHyperlink().SubAddress = keyvalue.Key.NameU;
-                            Debug.WriteLine(shape.Name + ": '" + keyvalue.Key.Name + "'");
-                            break;
-                        }
-                    }
-
-
-                }
-            }
-        }
         public void SomeMethod()
         {
             Visio.Page currentPage = app.ActivePage;
@@ -124,167 +69,9 @@ namespace QueenMasterVisio
             }
         }
 
-
-
-        private static string[] extractGValues(string input)
-        {
-            Regex regex = new Regex(@"G\d+(?:\.\d+)?\b");
-
-            MatchCollection matches = regex.Matches(input);
-
-            List<string> result = new List<string>();
-            foreach (Match match in matches)
-            {
-                result.Add(match.Value);
-            }
-
-            return result.ToArray();
-        }
-
-
-
-		// Нам нужен метод, работающий на плане, во время трассровки, назначит линиям User.code 
-		// Еще нужны настройки автоматические
-
-
-		// Функция проходит по всем страничкам (задом наперед) ищет фоновую страницу которая соотвествует айди плана, очищает ее и возращает. Либо если ее нет, создает новую и возвращает
-		static private Page GetOrCreateBackgroundPlan(Page page, string id)
-		{
-			
-			// Сначала ищем
-			foreach (Page _page in page.Document.Pages.Cast<Page>().Reverse())
-			{
-				// Если это фоновая
-				if (_page.Background != 0)
-				{
-					Debug.WriteLine(_page.Name);
-					if (_page?.PageSheet != null && (_page?.PageSheet.CellExists["User.pageCode", (short)Visio.VisExistsFlags.visExistsAnywhere] != 0) &&
-						_page?.PageSheet != null && (_page?.PageSheet.CellExists["User.id", (short)Visio.VisExistsFlags.visExistsAnywhere] != 0))
-					{
-						if (_page.PageSheet.CellsU["User.pageCode"].Formula == '"' + "PlanBackGround" + '"' &&
-							_page.PageSheet.CellsU["User.id"].Formula == id )
-						{
-							// Очищаем и возвращаем
-							Selection sel = _page.CreateSelection(Visio.VisSelectionTypes.visSelTypeAll, Visio.VisSelectMode.visSelModeSkipSuper);
-							// НЕ УДАЕТСЯ ИЗ ЗА БЛОКИРОВАННОГО 
-							sel.Delete();
-							return _page;
-						}
-
-					}
-
-				}
-			}
-			// Если страничка не найдена 
-			// Создаем страницу
-			Page newPage = page.Document.Pages.Add();
-			short row;
-			// Делаем что она была в конце
-			newPage.Index = (short)(page.Document.Pages.Count - 1);
-			// Делаем фоном
-			newPage.Background = 1;
-			// Имя страницы
-			newPage.Name = "DEVELOP " + page.Name + " backround";
-			// Даем код страницы ("planAuto")
-			row = (short)newPage.PageSheet.AddNamedRow((short)VisSectionIndices.visSectionUser, "pageCode", (short)VisRowTags.visTagDefault);
-			newPage.PageSheet.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = $"\"{"PlanBackGround"}\"";
-			// Даем Id (0,1,2 ...)
-			row = (short)newPage.PageSheet.AddNamedRow((short)VisSectionIndices.visSectionUser, "id", (short)VisRowTags.visTagDefault);
-			newPage.PageSheet.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = id;
-			return newPage;
-		}
-
-
-
-		// Удаляет все что на странице
-		private static void clearAlShapesInPage(Page page)
-		{
-            PageManager.LockAllLayers(page,false);
-			while (page.Shapes.Count > 0)
-			{
-				page.Shapes[1].CellsU["LockDelete"].Formula = "0";
-				page.Shapes[1].Delete();
-			}
-		}
-
-
-
-		// Поиск уже автоматически созданных страниц в документе. Автотрассировка.
-		public static Page searchAutoPage(Page page, string id, string wireCode)
-		{
-			foreach (Page item in page.Document.Pages)
-			{
-
-				if (item?.PageSheet != null && (item?.PageSheet.CellExists["User.pageType", (short)Visio.VisExistsFlags.visExistsAnywhere] != 0) &&
-					item?.PageSheet != null && (item?.PageSheet.CellExists["User.id", (short)Visio.VisExistsFlags.visExistsAnywhere] != 0) &&
-					item?.PageSheet != null && (item?.PageSheet.CellExists["User.pageCode", (short)Visio.VisExistsFlags.visExistsAnywhere] != 0))
-				{
-					if (item.PageSheet.CellsU["User.pageType"].Formula == '"' + wireCode + '"' &&
-				   item.PageSheet.CellsU["User.id"].Formula == id &&
-				   item.PageSheet.CellsU["User.pageCode"].Formula == "\"planAuto\"")
-					{
-						return item;
-					}
-				}
-
-			}
-			return null;
-		}
-
-
-		private static void newLayerDetect(Visio.Page page)
-		{
-			if (page.Layers.Count == WireService.wires.Count)
-				return;
-
-			foreach (Layer layer in page.Layers)
-			{
-				if (layer.Name == "" || layer.Name == "Соединительная линия")
-					continue;
-
-				bool result = false;
-
-				foreach (Wire wire in WireService.wires)
-				{
-
-					if (wire.name == layer.Name)
-					{
-						result = true;
-					}
-				}
-				if (!result)
-				{
-					Debug.WriteLine("Найдено лишнее: " + layer.Name);
-					//replaceLayer(page, layer.Name, activePlanCode);
-				}
-				Marshal.ReleaseComObject(layer);
-			}
-
-		}
-
-
-
-
 		public void onShapeChanged(Visio.Shape shape)
 		{
 			//Debug.WriteLine("Shape changed: " + shape.Name);
-		}
-
-		// Получение кода страницы
-		private static string getPageCode(Page page)
-		{
-			// Существует ли у страницы pageCode
-            if (Tools.CellExistsCheck(page, "User.pageCode"))
-			{
-				Debug.WriteLine(Tools.CellFormulaGet(page, "User.pageCode"));
-				return Tools.CellFormulaGet(page, "User.pageCode");
-			}
-			return null;
-		}
-
-		public static string GetActivePageCode()
-		{
-			return activePageCode;
 		}
 
 		public void onShapeAdded(Visio.Shape shape)
@@ -292,11 +79,11 @@ namespace QueenMasterVisio
             // Не вызываем если хоть кто то запретил это делать или есть флаг undo
             if(VisioEventSuppressor.IsShapeAddedSuppressed || shape.Application.IsUndoingOrRedoing)
 				return;
-            
-
             if (shape.IsLine())
 			{
-				if (shape.ContainingPage.IsPlanPage()) 
+                int scopeId = Globals.ThisAddIn.Application.BeginUndoScope("Изменение линии");
+
+                if (shape.ContainingPage.IsPlanPage()) 
 				{
 					rebuildShape(shape, true);
 				}
@@ -305,20 +92,20 @@ namespace QueenMasterVisio
                 {
 					rebuildShapeDevice(shape);
                 }
+                Globals.ThisAddIn.Application.EndUndoScope(scopeId, true);
 
-			}
+            }
 
-		}
+        }
 
         private static void rebuildShape(Visio.Shape shape, bool onUserShape = false)
         {
-
-            if (activePlanCode == null)
+            string activePlanCode = shape.ContainingPage.GetPlanCode();  
+            if (shape.ContainingPage.GetPlanCode() == null)
             {
                 shape.Delete();
                 return;
             }
-
             // Если она ничкему не присоеденена
             if (shape.Connects.Count != 2)
             {
@@ -332,7 +119,7 @@ namespace QueenMasterVisio
                 return;
             }
             // Если мы на трасировке,добавляем юзершейпы на линии
-            else if (WireService.wires.Any(w => w.name == activePlanCode && w.isWire)) 
+            else if (WireService.wires.Any(w => w.name.Contains(activePlanCode)&& w.isWire)) 
             {
 
                 Visio.Shape connectedShapeFrom = shape.Connects[1].ToSheet;
@@ -365,6 +152,8 @@ namespace QueenMasterVisio
             shape.CellsU["LockRotate"].FormulaU = "1";
             shape.CellsU["ShapeSplittable"].FormulaU = "0";
             shape.CellsU["ConFixedCode"].FormulaU = "2";
+            shape.CellsU["ConLineRouteExt"].FormulaU = "0";
+            shape.CellsU["ConLineRouteExt"].FormulaU = "1";
 
 
             Visio.Shape nearestLine = FindNearestLine(shape);
@@ -375,108 +164,49 @@ namespace QueenMasterVisio
 
 
         }
-        private static void rebuildShapeDevice(Visio.Shape shape)
+        public static void rebuildShapeDevice(Shape shape)
 		{
-   
+            // Линия уже перекрашена, не трогаем
+            if (shape.GetCellFormulaU("ConFixedCode") == "2")
+                return;
 
-            if (Tools.CellExistsCheck(shape.ContainingPage, "Prop.Scale"))
+            if (shape.ContainingPage.HasCell("Prop.Scale"))
 			{
 				shape.CellsU["LineWeight"].FormulaU = "=IFERROR(ThePage!Prop.Scale*0.5&\"pt\",1)";
             }
 
-
-
-            if (shape.Connects.Count == 2)
+            foreach (Visio.Shape candidate in shape.ContainingPage.Shapes.Cast<Shape>().Reverse())
             {
-                Visio.Shape connectedShapeFrom = shape.Connects[1].ToSheet;
-                Visio.Shape connectedShapeTo = shape.Connects[2].ToSheet;
-
-                string color = "";
-                string cable = "";
-
-                // Проверяем если это клемма
-                if (Tools.CellExistsCheck(connectedShapeFrom, "User.Color"))
+                if (candidate.IsLine() && candidate.ID != shape.ID)
                 {
-                    color = Tools.CellValueGet(connectedShapeFrom, "User.Color");
-                }
-                // Проверяем может это кабель
-                else if (Tools.CellExistsCheck(connectedShapeFrom, "Prop.Row_1"))
-                {
-                    cable = Tools.CellValueGet(connectedShapeFrom, "Prop.Row_1");
-                }
 
-                // Проверяем если это клемма
-                if (Tools.CellExistsCheck(connectedShapeTo, "User.Color"))
-                {
-                    color = Tools.CellValueGet(connectedShapeTo, "User.Color");
-                }
-                // Проверяем может это кабель
-                else if (Tools.CellExistsCheck(connectedShapeTo, "Prop.Row_1"))
-                {
-                    cable = Tools.CellValueGet(connectedShapeTo, "Prop.Row_1");
-                }
-
-                if (!string.IsNullOrEmpty(color))
-                {
-                    // Если цет серый, делаем черным
-                    if (color == "RGB(180; 180; 180)")
-                        color = "RGB(0;0;0)";
-
-                    shape.CellsU["LineColor"].FormulaU = '"' + color + '"';
-
-
-                }
-                else
-                {
-                    foreach (Shape candidate in shape.ContainingPage.Shapes)
-                    {
-                        if (candidate.IsLine() && candidate.ID != shape.ID)
-                        {
-
-                            if ((candidate.CellsU["BeginX"].ResultIU == shape.CellsU["BeginX"].ResultIU && candidate.CellsU["BeginY"].ResultIU == shape.CellsU["BeginY"].ResultIU) ||
-                                (candidate.CellsU["EndX"].ResultIU == shape.CellsU["EndX"].ResultIU && candidate.CellsU["EndY"].ResultIU == shape.CellsU["EndY"].ResultIU) ||
-                                (candidate.CellsU["BeginX"].ResultIU == shape.CellsU["EndX"].ResultIU && candidate.CellsU["BeginY"].ResultIU == shape.CellsU["EndY"].ResultIU) ||
-                                (candidate.CellsU["EndX"].ResultIU == shape.CellsU["BeginX"].ResultIU && candidate.CellsU["EndY"].ResultIU == shape.CellsU["BeginY"].ResultIU))
-                            {
-
-                                shape.CellsU["LineColor"].FormulaU = candidate.CellsU["LineColor"].FormulaU;
-                                shape.CellsU["LinePattern"].FormulaU = candidate.CellsU["LinePattern"].FormulaU;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            else 
-            {
-                foreach (Shape candidate in shape.ContainingPage.Shapes)
-                {
-                    if (candidate.IsLine() && candidate.ID != shape.ID)
+                    if ((candidate.CellsU["BeginX"].FormulaU == shape.CellsU["BeginX"].FormulaU && candidate.CellsU["BeginY"].FormulaU == shape.CellsU["BeginY"].FormulaU) ||
+                        (candidate.CellsU["EndX"].FormulaU == shape.CellsU["EndX"].FormulaU && candidate.CellsU["EndY"].FormulaU == shape.CellsU["EndY"].FormulaU) ||
+                        (candidate.CellsU["BeginX"].FormulaU == shape.CellsU["EndX"].FormulaU && candidate.CellsU["BeginY"].FormulaU == shape.CellsU["EndY"].FormulaU) ||
+                        (candidate.CellsU["EndX"].FormulaU == shape.CellsU["BeginX"].FormulaU && candidate.CellsU["EndY"].FormulaU == shape.CellsU["BeginY"].FormulaU))
                     {
 
-                        if ((candidate.CellsU["BeginX"].ResultIU == shape.CellsU["BeginX"].ResultIU && candidate.CellsU["BeginY"].ResultIU == shape.CellsU["BeginY"].ResultIU) ||
-                            (candidate.CellsU["EndX"].ResultIU == shape.CellsU["EndX"].ResultIU && candidate.CellsU["EndY"].ResultIU == shape.CellsU["EndY"].ResultIU) ||
-                            (candidate.CellsU["BeginX"].ResultIU == shape.CellsU["EndX"].ResultIU && candidate.CellsU["BeginY"].ResultIU == shape.CellsU["EndY"].ResultIU) ||
-                            (candidate.CellsU["EndX"].ResultIU == shape.CellsU["BeginX"].ResultIU && candidate.CellsU["EndY"].ResultIU == shape.CellsU["BeginY"].ResultIU))
+                        if (candidate.CellsU["LineColor"].FormulaU != "0" && candidate.CellsU["LineColor"].FormulaU != "\"RGB(0;0;0)\"")
                         {
-
                             shape.CellsU["LineColor"].FormulaU = candidate.CellsU["LineColor"].FormulaU;
                             shape.CellsU["LinePattern"].FormulaU = candidate.CellsU["LinePattern"].FormulaU;
+                            shape.CellsU["LineWeight"].FormulaU = candidate.CellsU["LineWeight"].FormulaU;
                             break;
                         }
+
                     }
                 }
             }
-
 
             shape.CellsU["Rounding"].FormulaU = "3 mm";
             shape.CellsU["ShapeRouteStyle"].FormulaU = "17";
             shape.CellsU["ConFixedCode"].FormulaU = "2";
-            shape.CellsU["ConLineRouteExt"].FormulaU = "1";
+
+            //shape.Application.QueueMarkerEvent("Recalc"); // заставляет Visio пересчитать
             //shape.CellsU["ObjType"].FormulaU = "4";
 
+
             // shape.CellsU["Path"].FormulaU = "";
-            // Или  shape.CellsU["ConFixedCode"].FormulaU = "2";
 
         }
 
@@ -619,9 +349,9 @@ namespace QueenMasterVisio
         private static void SetIdInLine(Visio.Shape lineShape)
 		{
 			Visio.Shape connectedShape = lineShape.Connects[2].ToSheet;
-			Debug.WriteLine(connectedShape.Name);
+            string activePlanCode = lineShape.ContainingPage.GetPlanCode();
 
-			if (connectedShape.Name.Contains("Device") || connectedShape.Name.Contains("Light") || connectedShape.Name.Contains("Camera") || connectedShape.Name.Contains("Alarm") || connectedShape.Name.Contains("Sound") || connectedShape.Name.Contains("Box"))
+            if (connectedShape.Name.Contains("Device") || connectedShape.Name.Contains("Light") || connectedShape.Name.Contains("Camera") || connectedShape.Name.Contains("Alarm") || connectedShape.Name.Contains("Sound") || connectedShape.Name.Contains("Box"))
             {
 				if (connectedShape.CellExists["Prop.Number", (short)Visio.VisExistsFlags.visExistsAnywhere] != 0)
 				{

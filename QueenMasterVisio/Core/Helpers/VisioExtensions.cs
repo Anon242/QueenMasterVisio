@@ -135,8 +135,12 @@ namespace QueenMasterVisio.Core.Helpers
 
 
         /// <summary>Включить/выключить печать всех слоёв (кроме Plan)</summary>
-        public static void SetPrintOnLayers(this Page page, bool print)
+        public static void SetPrintOnLayersNoPlan(this Page page, bool print)
         {
+            if (!page.IsPlanPage())
+            {
+                return;
+            }
             for (short i = 0; i < page.Layers.Count; i++)
             {
                 string index = i == 0 ? "" : "[" + (i + 1) + "]";
@@ -146,13 +150,29 @@ namespace QueenMasterVisio.Core.Helpers
             }
         }
 
- 
+        public static void SetPrintOnLayers(this Page page, bool print)
+        {
+            for (short i = 0; i < page.Layers.Count; i++)
+            {
+                string index = i == 0 ? "" : "[" + (i + 1) + "]";
+                Layer layer = page.Layers[i + 1];
+                page.PageSheet.Cells[$"Layers.Print{index}"].Formula = print ? "1" : "0";
+            }
+        }
+
+
 
 
 
         #endregion
 
         #region === Shape Extensions ===
+
+
+        public static bool HasCell(this Shape shape, string cellName)
+        {
+            return shape.CellExistsU[cellName, (short)VisExistsFlags.visExistsAnywhere] != 0;
+        }
 
         /// <summary>Это соединительная линия?</summary>
         public static bool IsLine(this Shape shape)
@@ -174,16 +194,28 @@ namespace QueenMasterVisio.Core.Helpers
         }
 
         /// <summary>Получить значение свойства (Prop.)</summary>
-        public static string GetProp(this Shape shape, string propName)
+        public static string GetCellFormulaU(this Shape shape, string cellName)
         {
-            if (shape.CellExistsU[$"Prop.{propName}", (short)VisExistsFlags.visExistsAnywhere] == 0)
+            if (!shape.HasCell(cellName))
                 return string.Empty;
-            return shape.CellsU[$"Prop.{propName}"].FormulaU.Replace("\"", "");
+            return shape.CellsU[cellName].FormulaU.Replace("\"", "");
+        }
+
+        public static void SetUserCellFormulaU(this Shape shape, string cellName, string value)
+        {
+            const short section = (short)VisSectionIndices.visSectionUser;
+            if (!shape.HasCell($"User.{cellName}"))
+            {
+                short row = (short)shape.AddNamedRow(section, cellName, (short)VisRowTags.visTagDefault);
+            }
+            shape.CellsU[$"User.{cellName}"].FormulaU = $"\"{value}\"";
         }
 
         /// <summary>Приклеить начало линии к фигуре</summary>
         public static void GlueBeginTo(this Shape connector, Shape target)
         {
+            if (!connector.IsLine())
+                throw new ArgumentException("Shape должен быть линией", nameof(target.NameU));
             connector.CellsU["BeginX"].GlueTo(target.CellsSRC[(short)VisSectionIndices.visSectionConnectionPts, 0, (short)VisCellIndices.visX]);
             connector.CellsU["BeginY"].GlueTo(target.CellsSRC[(short)VisSectionIndices.visSectionConnectionPts, 0, (short)VisCellIndices.visY]);
         }
@@ -191,6 +223,8 @@ namespace QueenMasterVisio.Core.Helpers
         /// <summary>Приклеить конец линии к фигуре</summary>
         public static void GlueEndTo(this Shape connector, Shape target)
         {
+            if(!connector.IsLine())
+                throw new ArgumentException("Shape должен быть линией", nameof(target.NameU));
             connector.CellsU["EndX"].GlueTo(target.CellsSRC[(short)VisSectionIndices.visSectionConnectionPts, 0, (short)VisCellIndices.visX]);
             connector.CellsU["EndY"].GlueTo(target.CellsSRC[(short)VisSectionIndices.visSectionConnectionPts, 0, (short)VisCellIndices.visY]);
         }

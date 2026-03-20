@@ -214,11 +214,13 @@
     <Compile Include="Core\Managers\LayerManager.cs" />
     <Compile Include="Core\Managers\PageManager.cs" />
     <Compile Include="Core\Managers\ShapeManager.cs" />
+    <Compile Include="Core\Models\WireService.cs" />
     <Compile Include="Core\Services\BackgroundWorker.cs" />
     <Compile Include="Core\Services\CableService.cs" />
     <Compile Include="Core\Services\CheckerService.cs" />
     <Compile Include="Core\Handlers\RibbonCommandHandler.cs" />
     <Compile Include="Core\Helpers\VisioExtensions.cs" />
+    <Compile Include="Core\Services\MasterAutoPlanPageService.cs" />
     <Compile Include="Core\Services\RedSquareCreator.cs" />
     <Compile Include="Core\Services\WireAutoConnectionService.cs" />
     <Compile Include="DeviceControl\DeviceCheck\DeviceCheck.cs">
@@ -226,6 +228,12 @@
     </Compile>
     <Compile Include="DeviceControl\DeviceCheck\DeviceCheck.Designer.cs">
       <DependentUpon>DeviceCheck.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DeviceControl\Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DeviceControl\Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Explorer\Explorer.cs">
       <SubType>UserControl</SubType>
@@ -241,9 +249,11 @@
     </Compile>
     <Compile Include="Core\Helpers\Tools.cs" />
     <Compile Include="Core\Models\Wire.cs" />
-    <Compile Include="Core\Services\WireService.cs" />
     <EmbeddedResource Include="DeviceControl\DeviceCheck\DeviceCheck.resx">
       <DependentUpon>DeviceCheck.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DeviceControl\Form1.resx">
+      <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Explorer\Explorer.resx">
       <DependentUpon>Explorer.cs</DependentUpon>
@@ -280,13 +290,13 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Image1.png" />
+    <None Include="Resources\blue_circle.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\101671.png" />
+    <None Include="Resources\red_square.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\2400441.png" />
+    <None Include="Resources\green_triangle.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Ribbon\MainLentXml.xml" />

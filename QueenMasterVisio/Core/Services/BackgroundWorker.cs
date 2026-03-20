@@ -103,7 +103,7 @@ namespace QueenMasterVisio
                             Regex regex = new Regex(@"^G\d");
                             if (!regex.IsMatch(page.Name)) continue;
                             //string gCode = page.Name.Split(' ').First();
-                            Debug.WriteLine(string.Join(",", extractGValues(page.Name)));
+                            Debug.WriteLine(string.Join(",", Tools.ExtractGValues(page.Name)));
                             /*
                             foreach (Shape shape in page.Shapes)
                             {
@@ -165,20 +165,6 @@ namespace QueenMasterVisio
             OnChangedPage?.Invoke(this, page);
         }
 
-        private static string[] extractGValues(string input)
-        {
-            Regex regex = new Regex(@"G\d+(?:\.\d+)?\b");
-
-            MatchCollection matches = regex.Matches(input);
-
-            List<string> result = new List<string>();
-            foreach (Match match in matches)
-            {
-                result.Add(match.Value);
-            }
-
-            return result.ToArray();
-        }
 
     }
 }

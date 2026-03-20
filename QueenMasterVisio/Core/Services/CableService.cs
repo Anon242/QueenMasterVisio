@@ -1,25 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Visio;
-using System.Runtime.InteropServices;
-using Office = Microsoft.Office.Core;
-using Visio = Microsoft.Office.Interop.Visio;
 using System.Diagnostics;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Page = Microsoft.Office.Interop.Visio.Page;
-using Application = Microsoft.Office.Interop.Visio.Application;
-using System.Reflection.Emit;
 using System.Windows.Forms;
-using System.Xml.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolBar;
-using static System.Net.Mime.MediaTypeNames;
-using System.Collections.ObjectModel;
 using QueenMasterVisio.Core.Helpers;
+using System.Text.RegularExpressions;
 
 namespace QueenMasterVisio.Core.Services
 {
@@ -46,7 +32,7 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
         readonly static string[] shapeTypeFrom = new string[] {"Device", "Light", "Shield", "Recorder", "Box"};
         readonly static string[] shapeTypeTo = new string[] { "Device", "Light", "Alarm","Sound","Camera", "Box"};
 
-        public static string Generate(Visio.Page page)
+        public static string Generate(Page page)
         {
             // Проверка на дурака
             if (!Tools.CellExistsCheck(page, "User.pageCode"))
@@ -56,14 +42,14 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
 
             string result = "Designation;From;Way;To;Type;Voltage;Length;Note\r\n";
 
-            foreach (Visio.Shape shape in page.Shapes)
+            foreach (Shape shape in page.Shapes)
             {
                 if(shape.IsLine())
                 {
                     if (shape.Connects.Count >= 2)
                     {
-                        Visio.Shape connectedShapeFrom = shape.Connects[1].ToSheet;
-                        Visio.Shape connectedShapeTo = shape.Connects[2].ToSheet;
+                        Shape connectedShapeFrom = shape.Connects[1].ToSheet;
+                        Shape connectedShapeTo = shape.Connects[2].ToSheet;
 
                         if (shapeTypeFrom.Any(type => connectedShapeFrom.Name.Contains(type)) && shapeTypeTo.Any(type => connectedShapeTo.Name.Contains(type)))
                         {
@@ -140,5 +126,105 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
             return result;
         }
 
+        private void SetHyperLinks(Page page)
+        {
+
+            // id and array 
+            List<KeyValuePair<Page, string[]>> pagesPair = new List<KeyValuePair<Page, string[]>>();
+            foreach (Page _page in page.Application.ActiveDocument.Pages)
+            {
+                // Если активная страница - пропускаем
+                if (_page?.Name == page.Name) continue;
+
+                // ЧЕК ПО УСТРОЙСТВАМ
+                Regex regex = new Regex(@"^G\d");
+                if (!regex.IsMatch(_page.Name)) continue;
+                //string gCode = page.Name.Split(' ').First();
+                // Номера 
+                pagesPair.Add(new KeyValuePair<Page, string[]>(_page, Tools.ExtractGValues(_page.Name)));
+                Debug.WriteLine(string.Join(",", Tools.ExtractGValues(_page.Name)));
+
+            }
+            Debug.WriteLine("Получили");
+
+            // Теперь пройдемся по девайсам 
+            foreach (Shape shape in page.Shapes)
+            {
+                if (!shape.Name.Contains("Device")) continue;
+
+                // Если существует 
+                if (shape.CellExists["Prop.Number", (short)VisExistsFlags.visExistsAnywhere] != 0)
+                {
+                    string nameValue = shape.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
+                    Debug.WriteLine("девайс " + nameValue);
+
+                    // Если есть совпадение в pagesPair values
+                    foreach (KeyValuePair<Page, string[]> keyvalue in pagesPair)
+                    {
+                        if (keyvalue.Value.Contains("G" + nameValue))
+                        {
+                            shape.AddHyperlink().SubAddress = keyvalue.Key.NameU;
+                            Debug.WriteLine(shape.Name + ": '" + keyvalue.Key.Name + "'");
+                            break;
+                        }
+                    }
+
+
+                }
+            }
+        }
+
+        public static void ResetLines(Page page)
+        {
+            if (page.IsPlanPage())
+                return;
+
+            Selection selection = Globals.ThisAddIn.Application.ActiveWindow.Selection;
+
+            if (selection.Count == 0)
+            {
+                DialogResult result = MessageBox.Show(
+                    "Ничего не выделено. Починить все линии на странице?",
+                    "Подтверждение",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    int scopeId = Globals.ThisAddIn.Application.BeginUndoScope("Массовое изменение фигур");
+                    ResetAllLines(page);
+                    Globals.ThisAddIn.Application.EndUndoScope(scopeId, true);
+                    return;
+                }
+                else
+                    return;
+            }
+            else
+            {
+                int scopeId = Globals.ThisAddIn.Application.BeginUndoScope("Массовое изменение фигур");
+                foreach (Shape shape in selection)
+                {
+                    if (shape.IsLine())
+                    {
+                        shape.CellsU["ConFixedCode"].FormulaU = "0";
+                        VisioEventAggregator.rebuildShapeDevice(shape);
+                    }
+                }
+                Globals.ThisAddIn.Application.EndUndoScope(scopeId, true);
+
+            }
+
+        }
+        private static void ResetAllLines(Page page)
+        {
+            foreach (Shape shape in page.Shapes)
+            {
+                if (shape.IsLine())
+                {
+                    shape.CellsU["ConFixedCode"].FormulaU = "0";
+                    VisioEventAggregator.rebuildShapeDevice(shape);
+                }
+            }
+        }
     }
 }

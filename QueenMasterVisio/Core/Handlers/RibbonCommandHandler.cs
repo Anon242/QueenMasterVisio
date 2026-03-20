@@ -3,6 +3,7 @@ using Microsoft.Office.Interop.Visio;
 using QueenMasterVisio.Core.Helpers;
 using QueenMasterVisio.Core.Managers;
 using QueenMasterVisio.Core.Services;
+using QueenMasterVisio;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -44,11 +45,12 @@ namespace QueenMasterVisio.Core.Handlers
             {
                 case "btnAutoConnect":
                     if (page.GetPlanCode() != "Plan" && page.GetPlanCode() != "All")
-                        Services.WireAutoConnectionService.autoConnect(page);
+                        WireAutoConnectionService.autoConnect(page);
                     break;
                 case "btnReload":
+                    MasterAutoPlanPageService.CreateNewReloadPages(page);
                     break;
-                //////////////////// Слои
+                ////////////////////////////////// Слои
                 case "btnAll":
                 case "btnPlan":
                 case "btnOther_1":
@@ -66,7 +68,21 @@ namespace QueenMasterVisio.Core.Handlers
                     // Если будет проблема, тогда будем хранить план код в User.Shape
                     PageManager.SetOptionsAllPlanlayer(page, buttonId);
                     break;
-                //////////////////// Слои
+                ////////////////////////////////// Слои
+                case "btnGetLineData":
+                    Clipboard.SetText(CableService.Generate(page));
+                    break;
+                case "btnSetHyperLinks":
+                    //SetHyperLinks(page);
+                    break;
+                case "btnLookDevices":
+                    //explorer.LookDevices(page);
+                    break;
+                case "btnDevicesCheck":
+                    if (!page.IsPlanPage())
+                        return;
+                    CheckerService.CheckDevicesInPlan(page); // Не верно 
+                    break;
             }
         }
 
@@ -85,17 +101,16 @@ namespace QueenMasterVisio.Core.Handlers
                     if (!page.IsAutoTracePage())
                         return;
                     
-                    PageManager.redrawPageAuto(page);
+                    PageManager.RedrawPageAuto(page);
                     break;
 
+                // Сброс линий 
+                case "btnResetLine":
+                    CableService.ResetLines(page);
+                    break;
                 case "btnCreatePlan":
                     PageManager.CreateNewPlan(page);
                     
-                    break;
-                case "btnDevicesCheck":
-                    if (!page.IsPlanPage())
-                        return;
-                    //CheckerService.CheckDevicesInPlan(page); // Не верно 
                     break;
                 case "btnCopyAll":
                     try
@@ -110,14 +125,11 @@ namespace QueenMasterVisio.Core.Handlers
                     catch{}
                     break;
 
-                case "btnPasteAll":
-                  
+                case "btnPasteAll": 
                     try
                     {
-
                         using (VisioEventSuppressor.SuppressShapeAdded())
                         {
-                            
                             // Страница заблокирована
                             if (RedSquareCreator.RedSquareGetLayer(page) != null)
                                 return;
@@ -128,33 +140,19 @@ namespace QueenMasterVisio.Core.Handlers
                             page.Paste(VisCutCopyPasteCodes.visCopyPasteNoTranslate | VisCutCopyPasteCodes.visCopyPasteNoHealConnectors | VisCutCopyPasteCodes.visCopyPasteDontAddToContainers);
                             
                             Clipboard.Clear();
-
                             // На случай если мы копировали с заблоканого слоя
                             RedSquareCreator.RedSquareDelete(page);
-                           
                         }
-                        Thread.Sleep(1300);
                     }
                     catch{}
-                   
 
                     break;
-                case "btnGetLineData":
-                    //MessageBox.Show(CableSchedule.Generate(page),"Test",MessageBoxButtons.OK);
-                    //string str = CableService.Generate(page);
-                    //Clipboard.SetText(str);
-                    //Debug.WriteLine(str);
-                    break;
-                case "btnSetHyperLinks":
-                    //SetHyperLinks(page);
-                    break;
-                case "btnLookDevices":
-                    //explorer.LookDevices(page);
-                    break;
                 case "btnLookDevicesOnPlan":
-                    DeviceCheck.DeviceCheck deviceCheck = new DeviceCheck.DeviceCheck(page.Application);
-                    deviceCheck.Show();
-                    
+                    //DeviceCheck.DeviceCheck deviceCheck = new DeviceCheck.DeviceCheck(page.Application);
+                    //deviceCheck.Show();
+                    Form1 form = new Form1();
+                    form.Show();
+
                     break;
                 case "btnCreateNewDevice":
                     short pageIndex = (short)(page.Document.Pages.Count - 1);
