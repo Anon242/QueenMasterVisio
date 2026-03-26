@@ -174,7 +174,7 @@ namespace QueenMasterVisio
 			{
 				shape.CellsU["LineWeight"].FormulaU = "=IFERROR(ThePage!Prop.Scale*0.5&\"pt\",1)";
             }
-
+            bool isFind = false;
             foreach (Visio.Shape candidate in shape.ContainingPage.Shapes.Cast<Shape>().Reverse())
             {
                 if (candidate.IsLine() && candidate.ID != shape.ID)
@@ -191,8 +191,40 @@ namespace QueenMasterVisio
                             shape.CellsU["LineColor"].FormulaU = candidate.CellsU["LineColor"].FormulaU;
                             shape.CellsU["LinePattern"].FormulaU = candidate.CellsU["LinePattern"].FormulaU;
                             shape.CellsU["LineWeight"].FormulaU = candidate.CellsU["LineWeight"].FormulaU;
+                            isFind = true;
                             break;
                         }
+
+                    }
+                }
+            }
+            // Если не нашли, берем цвет клеммы
+            if (!isFind)
+            {
+                if (shape.Connects.Count == 2)
+                {
+                    Visio.Shape connectedShapeFrom = shape.Connects[1].ToSheet;
+                    Visio.Shape connectedShapeTo = shape.Connects[2].ToSheet;
+                    string color = "";
+                    // Проверяем если это клемма
+                    if (Tools.CellExistsCheck(connectedShapeFrom, "User.Color"))
+                    {
+                        color = Tools.CellValueGet(connectedShapeFrom, "User.Color");
+                    }
+                    // Проверяем если это клемма
+                    else if (Tools.CellExistsCheck(connectedShapeTo, "User.Color"))
+                    {
+                        color = Tools.CellValueGet(connectedShapeTo, "User.Color");
+                    }
+
+                    if (!string.IsNullOrEmpty(color))
+                    {
+                        // Если цет серый, делаем черным
+                        if (color == "RGB(180; 180; 180)")
+                            color = "RGB(0;0;0)";
+
+                        shape.CellsU["LineColor"].FormulaU = '"' + color + '"';
+
 
                     }
                 }
