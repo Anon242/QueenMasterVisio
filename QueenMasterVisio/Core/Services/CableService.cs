@@ -6,6 +6,7 @@ using Page = Microsoft.Office.Interop.Visio.Page;
 using System.Windows.Forms;
 using QueenMasterVisio.Core.Helpers;
 using System.Text.RegularExpressions;
+using QueenMasterVisio.Core.Managers;
 
 namespace QueenMasterVisio.Core.Services
 {
@@ -91,7 +92,7 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
                             else if (connectedShapeTo.Name.Contains("Box"))
                                 f4 = "J" + nameValueTo;
                             // sech
-                            string f6 = wire.defaultCable == null ? "" : wire.defaultCable;
+                            string f6 = wire.defaultCable ?? "";
                             if (wire.name == "Lx" && Tools.CellExistsCheck(connectedShapeTo, "Prop.Type") && connectedShapeTo.CellsU["Prop.Type"].ResultStrU[""] == "RGB")
                             {
                                 f6 = "4 x 1.5";
@@ -207,7 +208,7 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
                     if (shape.IsLine())
                     {
                         shape.CellsU["ConFixedCode"].FormulaU = "0";
-                        VisioEventAggregator.rebuildShapeDevice(shape);
+                        ShapeManager.RebuildShapeDevice(shape);
                     }
                 }
                 Globals.ThisAddIn.Application.EndUndoScope(scopeId, true);
@@ -222,7 +223,7 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
                 if (shape.IsLine())
                 {
                     shape.CellsU["ConFixedCode"].FormulaU = "0";
-                    VisioEventAggregator.rebuildShapeDevice(shape);
+                    ShapeManager.RebuildShapeDevice(shape);
                 }
             }
         }

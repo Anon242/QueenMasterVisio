@@ -9,7 +9,6 @@ namespace QueenMasterVisio
 {
     internal class Tools
     {
-
         // Получаем значениеU из ячейки
         public static string CellValueGet(Visio.Shape shape, string cell)
         {

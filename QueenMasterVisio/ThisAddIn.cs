@@ -136,9 +136,9 @@ namespace QueenMasterVisio
             CreateEmbeddedWindow();
             
 
-            myPage = new VisioEventAggregator(this.Application, doc.Name, pageExplorer);
-            this.Application.ShapeChanged += new Visio.EApplication_ShapeChangedEventHandler(myPage.onShapeChanged);
-            this.Application.ShapeAdded += new Visio.EApplication_ShapeAddedEventHandler(myPage.onShapeAdded);
+            myPage = new VisioEventAggregator(this.Application, pageExplorer);
+            this.Application.ShapeChanged += new Visio.EApplication_ShapeChangedEventHandler(myPage.OnShapeChanged);
+            this.Application.ShapeAdded += new Visio.EApplication_ShapeAddedEventHandler(myPage.OnShapeAdded);
             myPage.start();
 
             pageExplorer.UpdateExplorer();
