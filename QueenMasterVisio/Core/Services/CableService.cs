@@ -56,7 +56,13 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
                         {
                             string nameValueFrom = connectedShapeFrom.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
                             string nameValueTo = connectedShapeTo.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
-                            Wire wire = WireService.GetWireByColorName(shape.CellsU["LineColor"].FormulaU);
+                        
+                            Wire wire = WireService.GetWireByLayer(shape);
+                            if (shape.NameU.Contains(".10052"))
+                            {
+                                Debug.WriteLine(1);
+                            }
+                            
                             if (wire == null) { continue; }
                             // Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
 
@@ -76,6 +82,9 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
                                 f2 = "G" + nameValueFrom + " - Recorder";
                             else if (connectedShapeFrom.Name.Contains("Box"))
                                 f2 = "J" + nameValueFrom;
+                            else if (connectedShapeFrom.Name.Contains("Device"))  // Костыль ебаный
+                                f2 = "G" + nameValueFrom;
+
 
                             // way
                             string f3 = wire.name[0] + nameValueTo;

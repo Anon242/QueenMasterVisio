@@ -1,10 +1,12 @@
 ﻿using Microsoft.Office.Interop.Visio;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Shapes;
 using System.Xml.Linq;
 
 namespace QueenMasterVisio
@@ -41,10 +43,20 @@ namespace QueenMasterVisio
             return wires.FirstOrDefault(w => w.name == name);
         }
         // Получить объект трасера зная лишь цвет
-        public static Wire GetWireByColorName(string colorName)
+        public static Wire GetWireByLayer(Microsoft.Office.Interop.Visio.Shape shape)
         {
-            return wires.FirstOrDefault(w => w.color == colorName);
+            try    
+            {
+                string name = shape.Layer[2].NameU;
+                return wires.FirstOrDefault(w => w.name == name);
+            }
+            catch
+            {
+                return null;
+            }
         }
+
+
 
     }
 }
