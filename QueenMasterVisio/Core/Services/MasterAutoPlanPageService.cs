@@ -142,6 +142,8 @@ namespace QueenMasterVisio.Core.Services
                                         {
                                             // Нашли									
                                             shape.Text = wire.comment + " " + wire.defaultCable + " " + wire.voltage;
+                                            if (wire.comment == "RS485 wires")
+                                                shape.Text += " AND " + "3 x 1.5\n2̲ c̲a̲b̲l̲e̲s̲!̲";
                                             shape.CellsU["Char.Color"].FormulaU = wire.color;
                                             Debug.WriteLine("Мы написали");
                                             // Если мы на странице света, ищем RGB что бы указать их как UTP
