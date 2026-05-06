@@ -209,6 +209,11 @@
     can be found.
   -->
   <ItemGroup>
+    <Compile Include="ChangeLog\ChangeModel.cs" />
+    <Compile Include="ChangeLog\Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ChangeLog\Form1.Designer.cs" />
     <Compile Include="Core\Helpers\VisioEventSuppressor.cs" />
     <Compile Include="Core\Managers\DocumentManager.cs" />
     <Compile Include="Core\Managers\LayerManager.cs" />
@@ -249,6 +254,7 @@
     </Compile>
     <Compile Include="Core\Helpers\Tools.cs" />
     <Compile Include="Core\Models\Wire.cs" />
+    <EmbeddedResource Include="ChangeLog\Form1.resx" />
     <EmbeddedResource Include="DeviceControl\DeviceCheck\DeviceCheck.resx">
       <DependentUpon>DeviceCheck.cs</DependentUpon>
     </EmbeddedResource>

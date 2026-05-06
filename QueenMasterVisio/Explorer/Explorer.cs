@@ -37,8 +37,6 @@ namespace QueenMasterVisio
             Color.FromArgb(255,31,120,180),
         };
 
-
-
         public Explorer(Visio.Application application, Visio.Window _customWindow)
         {
             customWindow = _customWindow;
@@ -65,6 +63,47 @@ namespace QueenMasterVisio
             listView1.ContextMenuStrip = contextMenuStrip1;
 
         }
+
+        public string GetHeadlinesText()
+        {
+            string result = "Information/1\n";
+            int tabCount = 1;
+            string text = "";
+
+            foreach (ListViewItem item in listView1.Items)
+            {
+                text = item.SubItems[1].Text;
+                // Если кто то содержит заголовок
+                if (string.IsNullOrEmpty(item.Text))
+                {
+                    if (text.Contains("DEVICES"))
+                    {
+                        tabCount = 0;
+                        text = "Devices";
+                    }
+                    else if (text.Contains("LIGHTS"))
+                    {
+                        tabCount = 0;
+                        text = "Lights";
+                    }
+                    else
+                    {
+                        text = text.Replace("-", "");
+                        text = text.Replace(" [", "");
+                        text = text.Replace("] ", "");
+                        tabCount = 0;
+                    }
+
+                }
+                char symbol = ' ';
+                string tabs = new string(symbol, tabCount);
+                result += tabs + text + '/' + item.Text + '\n';
+                tabCount = 1;
+            }
+
+            return result;
+        }
+
         private void ListView1_ItemDrag(object sender, ItemDragEventArgs e)
         {
             // Начало перетаскивания

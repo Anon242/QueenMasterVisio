@@ -5,6 +5,7 @@ using QueenMasterVisio.Ribbon;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security.Policy;
 using System.Windows.Forms;
 using Office = Microsoft.Office.Core;
 using Visio = Microsoft.Office.Interop.Visio;
@@ -134,8 +135,8 @@ namespace QueenMasterVisio
                 return;
             // Explorer
             CreateEmbeddedWindow();
-            
 
+            this.Application.BeforeDocumentSave += new Visio.EApplication_BeforeDocumentSaveEventHandler(Application_BeforeDocumentSave);
             myPage = new VisioEventAggregator(this.Application, pageExplorer);
             this.Application.ShapeChanged += new Visio.EApplication_ShapeChangedEventHandler(myPage.OnShapeChanged);
             this.Application.ShapeAdded += new Visio.EApplication_ShapeAddedEventHandler(myPage.OnShapeAdded);
@@ -143,6 +144,44 @@ namespace QueenMasterVisio
 
             pageExplorer.UpdateExplorer();
 
+        }
+
+        private void Application_BeforeDocumentSave(Visio.Document doc)
+        {
+            string changelogPath = doc.FullName; 
+            if (string.IsNullOrEmpty(changelogPath))
+                return;
+
+            int startIndex = changelogPath.IndexOf("EscapeRoomDoctor");
+            if (startIndex == -1)
+                return;
+
+            
+
+            string relativePath = changelogPath.Substring(startIndex).Replace('/','\\');
+            string userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
+            string path = userProfile + "\\OneDrive\\" + relativePath;
+
+            string headers = pageExplorer.GetHeadlinesText();
+            if (!string.IsNullOrEmpty(headers))
+            {
+                string headersPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path), "headers.txt");
+                System.IO.File.WriteAllText(headersPath, headers);
+            }
+
+            
+
+            changelogPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path), "changelog.txt");
+
+            // Если нет, создаем changelog.txt
+            if (!System.IO.File.Exists(changelogPath))
+                System.IO.File.WriteAllText(changelogPath, "");
+
+
+
+            // Далее открываете форму
+            ChangeLog.Form1 form = new ChangeLog.Form1(changelogPath);
+            form.ShowDialog();
         }
 
         protected override Microsoft.Office.Core.IRibbonExtensibility CreateRibbonExtensibilityObject()
