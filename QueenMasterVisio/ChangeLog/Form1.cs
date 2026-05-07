@@ -51,7 +51,7 @@ namespace QueenMasterVisio.ChangeLog
         private void SendChangeLog()
         {
             string supertext = "2026-13-1\nЯ сделал тото тото\nВот пруфы лог лог лог\nлог лог лог";
-            //System.IO.File.WriteAllText(changeLogPath, supertext);
+            System.IO.File.WriteAllText(changeLogPath, supertext);
         }
     }
 }

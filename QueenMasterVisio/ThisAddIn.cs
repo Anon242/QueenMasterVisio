@@ -136,7 +136,8 @@ namespace QueenMasterVisio
             // Explorer
             CreateEmbeddedWindow();
 
-            this.Application.BeforeDocumentSave += new Visio.EApplication_BeforeDocumentSaveEventHandler(Application_BeforeDocumentSave);
+            //this.Application.BeforeDocumentSave += new Visio.EApplication_BeforeDocumentSaveEventHandler(Application_BeforeDocumentSave);
+            this.Application.DocumentSaved += new Visio.EApplication_DocumentSavedEventHandler(Application_DocumentSaved);
             myPage = new VisioEventAggregator(this.Application, pageExplorer);
             this.Application.ShapeChanged += new Visio.EApplication_ShapeChangedEventHandler(myPage.OnShapeChanged);
             this.Application.ShapeAdded += new Visio.EApplication_ShapeAddedEventHandler(myPage.OnShapeAdded);
@@ -146,17 +147,19 @@ namespace QueenMasterVisio
 
         }
 
-        private void Application_BeforeDocumentSave(Visio.Document doc)
+        private void Application_DocumentSaved(Visio.Document doc)
         {
             string changelogPath = doc.FullName; 
             if (string.IsNullOrEmpty(changelogPath))
+                return;
+
+            if(!(changelogPath.Contains("EscapeRoomDoctor") && changelogPath.Contains("Project")))
                 return;
 
             int startIndex = changelogPath.IndexOf("EscapeRoomDoctor");
             if (startIndex == -1)
                 return;
 
-            
 
             string relativePath = changelogPath.Substring(startIndex).Replace('/','\\');
             string userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
@@ -181,7 +184,8 @@ namespace QueenMasterVisio
 
             // Далее открываете форму
             ChangeLog.Form1 form = new ChangeLog.Form1(changelogPath);
-            form.ShowDialog();
+            form.TopMost = true;
+            form.Show();
         }
 
         protected override Microsoft.Office.Core.IRibbonExtensibility CreateRibbonExtensibilityObject()

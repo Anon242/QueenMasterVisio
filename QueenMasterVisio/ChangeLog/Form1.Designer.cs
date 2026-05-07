@@ -92,16 +92,6 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label4.Location = new System.Drawing.Point(13, 239);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(277, 15);
-            this.label4.TabIndex = 6;
-            this.label4.Text = "*Документ уже сохранен и отправлен на сервер";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
