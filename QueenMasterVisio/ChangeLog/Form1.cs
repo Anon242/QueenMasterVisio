@@ -22,7 +22,6 @@ namespace QueenMasterVisio.ChangeLog
             this.changeLogPath = changeLogPath;
         }
     
-
         public void ChangeLog(string text)
         {
             label3.Text = text;
@@ -33,7 +32,6 @@ namespace QueenMasterVisio.ChangeLog
             e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
             e.Graphics.DrawString("Ваш текст", this.Font, Brushes.Black, 10, 10);
         }
-
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrayNotify;
 using Color = System.Drawing.Color;
 using Visio = Microsoft.Office.Interop.Visio;
 
@@ -70,35 +71,58 @@ namespace QueenMasterVisio
             int tabCount = 1;
             string text = "";
 
+            string oldNum = "";
+
             foreach (ListViewItem item in listView1.Items)
             {
                 text = item.SubItems[1].Text;
+                string num = item.Text;
+                string lastText = ",Black,notBold,notItalic,open,TopLeftZoom,1,0,0.0";
+                bool lastTextFlag = false;
                 // Если кто то содержит заголовок
-                if (string.IsNullOrEmpty(item.Text))
+                if (string.IsNullOrEmpty(num) || (num.Contains("[") && num.Contains("]")))
                 {
                     if (text.Contains("DEVICES"))
                     {
                         tabCount = 0;
+                    lastTextFlag = true;
                         text = "Devices";
                     }
                     else if (text.Contains("LIGHTS"))
                     {
                         tabCount = 0;
+                    lastTextFlag = true;
                         text = "Lights";
+                    }
+                    else if (text.Contains("BACKGROUNDS"))
+                    {
+                        break;
                     }
                     else
                     {
                         text = text.Replace("-", "");
                         text = text.Replace(" [", "");
                         text = text.Replace("] ", "");
+                    lastTextFlag = true;
                         tabCount = 0;
                     }
 
+                    if (!string.IsNullOrEmpty(oldNum))
+                    {
+                        num = (int.Parse(oldNum) + 1).ToString();
+                    }
                 }
-                char symbol = ' ';
+                else
+                {
+                    oldNum = item.Text;
+                }
+
+                char symbol = '\t';
                 string tabs = new string(symbol, tabCount);
-                result += tabs + text + '/' + item.Text + '\n';
+                text = text.Replace('/','\\');
+                result += tabs + text + '/' + num + (lastTextFlag ? "" : lastText) +"\n";
                 tabCount = 1;
+                lastTextFlag = false;
             }
 
             return result;

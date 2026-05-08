@@ -168,19 +168,12 @@ namespace QueenMasterVisio
             string headers = pageExplorer.GetHeadlinesText();
             if (!string.IsNullOrEmpty(headers))
             {
-                string headersPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path), "headers.txt");
+                string headersPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path), "Metafiles/headers.txt");
                 System.IO.File.WriteAllText(headersPath, headers);
             }
 
             
-
-            changelogPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path), "changelog.txt");
-
-            // Если нет, создаем changelog.txt
-            if (!System.IO.File.Exists(changelogPath))
-                System.IO.File.WriteAllText(changelogPath, "");
-
-
+            changelogPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path), "Metafiles/changelog.txt");
 
             // Далее открываете форму
             ChangeLog.Form1 form = new ChangeLog.Form1(changelogPath);
