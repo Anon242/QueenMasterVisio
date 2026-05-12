@@ -4,6 +4,7 @@ using QueenMasterVisio.Core.Handlers;
 using QueenMasterVisio.Ribbon;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Policy;
 using System.Windows.Forms;
@@ -19,7 +20,10 @@ namespace QueenMasterVisio
         MainLentXml myRibbonTracer;
 
         private Explorer pageExplorer;
+        private ChangeLog.ChangeLog changeLog;
+
         private Visio.Window customWindow;
+        private Visio.Window customWindowChangeLog;
 
         [DllImport("user32.dll")]
         private static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
@@ -79,14 +83,37 @@ namespace QueenMasterVisio
                     300, 600,                                                // Размер
                     "", "", 0                                                // Параметры слияния
                 );
-
                 // Создаем UserControl
                 pageExplorer = new Explorer(this.Application, customWindow);
 
-
-
                 // Встраиваем UserControl в окно Visio
                 EmbedUserControlInWindow();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error creating embedded window: {ex.Message}");
+            }
+        }
+
+        private void CreateEmbeddedWindowChangeLog(string path)
+        {
+            try
+            {
+                // Создаем встроенное окно в Visio
+                customWindowChangeLog = this.Application.ActiveWindow.Windows.Add("Change Log",                                           // Заголовок
+                    (Visio.VisWindowStates.visWSVisible |
+                           Visio.VisWindowStates.visWSFloating),          // Состояние - видимое, закреплено справа
+                    (short)Visio.VisWinTypes.visAnchorBarAddon,              // Тип - панель дополнения
+                    200, 200,                                                    // Позиция
+                    348, 220,                                               // Размер
+                    "", "", 0                                                // Параметры слияния
+                );
+
+                // Создаем UserControl
+                changeLog = new ChangeLog.ChangeLog(customWindowChangeLog, path);
+                // Change log
+                EmbedUserControlInWindowChangeLog();
+                
             }
             catch (Exception ex)
             {
@@ -112,6 +139,32 @@ namespace QueenMasterVisio
 
                 // Растягиваем UserControl на все окно
                 pageExplorer.Dock = DockStyle.Fill;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error embedding control: {ex.Message}");
+            }
+        }
+
+        private void EmbedUserControlInWindowChangeLog()
+        {
+            try
+            {
+                // Получаем handle окна Visio
+                IntPtr windowHandle = new IntPtr(customWindowChangeLog.WindowHandle32);
+
+                // Получаем handle UserControl
+                changeLog.CreateControl();
+                IntPtr controlHandle = changeLog.Handle;
+
+                // Устанавливаем UserControl как дочернее окно
+                SetParent(controlHandle, windowHandle);
+
+                // Устанавливаем стили окна
+                SetWindowLong(controlHandle, GWL_STYLE, WS_CHILD | WS_VISIBLE);
+
+                // Растягиваем UserControl на все окно
+                changeLog.Dock = DockStyle.Fill;
             }
             catch (Exception ex)
             {
@@ -145,6 +198,7 @@ namespace QueenMasterVisio
 
             pageExplorer.UpdateExplorer();
 
+
         }
 
         private void Application_DocumentSaved(Visio.Document doc)
@@ -159,26 +213,40 @@ namespace QueenMasterVisio
             int startIndex = changelogPath.IndexOf("EscapeRoomDoctor");
             if (startIndex == -1)
                 return;
-
-
-            string relativePath = changelogPath.Substring(startIndex).Replace('/','\\');
-            string userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
-            string path = userProfile + "\\OneDrive\\" + relativePath;
-
-            string headers = pageExplorer.GetHeadlinesText();
-            if (!string.IsNullOrEmpty(headers))
+            try
             {
-                string headersPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path), "Metafiles/headers.txt");
-                System.IO.File.WriteAllText(headersPath, headers);
+                // Пишем заголовки
+                string relativePath = changelogPath.Substring(startIndex).Replace('/', '\\');
+                string userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
+                string basePath = System.IO.Path.Combine(userProfile, "OneDrive", relativePath);
+                string directory = System.IO.Path.GetDirectoryName(basePath);
+
+                // 1. Проверяем и создаём основную папку
+                if (!Directory.Exists(directory))
+                    Directory.CreateDirectory(directory);
+
+                // 2. Папка для метафайлов
+                string metafilesDir = System.IO.Path.Combine(directory, "Metafiles");
+                if (!Directory.Exists(metafilesDir))
+                    Directory.CreateDirectory(metafilesDir);
+
+                // Заголовки (если есть)
+                string headers = pageExplorer.GetHeadlinesText();
+                if (!string.IsNullOrEmpty(headers))
+                {
+                    string headersPath = System.IO.Path.Combine(metafilesDir, "headers.txt");
+                    File.WriteAllText(headersPath, headers);
+                }
+
+                // Дальше Чейнджлог
+                string finalChangelogPath = System.IO.Path.Combine(metafilesDir, "changelog.txt");
+                CreateEmbeddedWindowChangeLog(finalChangelogPath);
             }
-
-            
-            changelogPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path), "Metafiles/changelog.txt");
-
-            // Далее открываете форму
-            ChangeLog.Form1 form = new ChangeLog.Form1(changelogPath);
-            form.TopMost = true;
-            form.Show();
+            catch (Exception ex)
+            {
+                // Логируем ошибку, а не проглатываем
+                Debug.WriteLine($"Error preparing changelog: {ex.Message}");
+            }
         }
 
         protected override Microsoft.Office.Core.IRibbonExtensibility CreateRibbonExtensibilityObject()
