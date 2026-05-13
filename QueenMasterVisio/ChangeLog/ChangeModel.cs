@@ -14,14 +14,6 @@ namespace QueenMasterVisio.ChangeLog
         public DateTime date;
         public string log;
         public string version;
-
-        public ChangeModel(string name, string description, DateTime date, string log, string version)
-        {
-            this.name = name;
-            this.description = description;
-            this.date = date;
-            this.log = log;
-            this.version = version;
-        }
+        public string author;
     }
 }

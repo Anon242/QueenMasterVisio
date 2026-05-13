@@ -5,6 +5,7 @@ using QueenMasterVisio.Ribbon;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Policy;
 using System.Windows.Forms;
@@ -44,21 +45,6 @@ namespace QueenMasterVisio
             this.Application.BeforeDocumentClose += new Visio.EApplication_BeforeDocumentCloseEventHandler(OnBeforeDocumentClose);
             this.Application.PageAdded += new Visio.EApplication_PageAddedEventHandler(OnPageAdded);
             this.Application.PageChanged += new Visio.EApplication_PageChangedEventHandler(OnPageChanged);
-
-            AppDomain.CurrentDomain.UnhandledException += (s, args) =>
-            {
-                Exception ex = args.ExceptionObject as Exception;
-                string message = ex?.Message ?? "Неизвестная ошибка";
-                MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            };
-
-            // Обработчик для UI потоков
-            System.Windows.Forms.Application.ThreadException += (s, args) =>
-            {
-                Exception ex = args.Exception as Exception;
-                string message = ex?.Message ?? "Неизвестная ошибка";
-                MessageBox.Show(message + "\n UI", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            };
         }
 
         private void OnPageChanged(Page Page)
@@ -110,7 +96,7 @@ namespace QueenMasterVisio
                 );
 
                 // Создаем UserControl
-                changeLog = new ChangeLog.ChangeLog(customWindowChangeLog, path);
+                changeLog = new ChangeLog.ChangeLog(customWindowChangeLog,this.Application, path);
                 // Change log
                 EmbedUserControlInWindowChangeLog();
                 
@@ -199,6 +185,66 @@ namespace QueenMasterVisio
             pageExplorer.UpdateExplorer();
 
 
+            // Проверим че там в логах TEEEEEEEEEEEST TEEEEST
+            try
+            {
+               
+
+                string changelogPath = doc.FullName;
+            if (string.IsNullOrEmpty(changelogPath))
+                return;
+                
+
+                if (!(changelogPath.Contains("EscapeRoomDoctor") && changelogPath.Contains("Project")))
+                return;
+                
+
+                int startIndex = changelogPath.IndexOf("EscapeRoomDoctor");
+            if (startIndex == -1)
+                return;
+               
+
+                string relativePath = changelogPath.Substring(startIndex).Replace('/', '\\');
+                string userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
+                string basePath = System.IO.Path.Combine(userProfile, "OneDrive", relativePath);
+                string directory = System.IO.Path.GetDirectoryName(basePath);
+                //Папка для метафайлов
+                string metafilesDir = System.IO.Path.Combine(directory, "Metafiles");
+                if (!Directory.Exists(metafilesDir))
+                    Directory.CreateDirectory(metafilesDir);
+
+                //Папка для чейнджлогов
+                string changeLogsDir = System.IO.Path.Combine(metafilesDir, "ChangeLogs");
+                if (!Directory.Exists(changeLogsDir))
+                    Directory.CreateDirectory(changeLogsDir);
+
+                var lastFile = new DirectoryInfo(changeLogsDir).GetFiles().OrderByDescending(f => f.CreationTime).FirstOrDefault();
+                if (lastFile != null)
+                {
+                    string fileName = lastFile.Name;
+                    DateTime creationDate = RoundToMinute(lastFile.CreationTime);
+                    DateTime vsdxLast = RoundToMinute(File.GetLastWriteTime(basePath));
+                    if (Math.Abs((creationDate - vsdxLast).TotalMinutes) > 1)
+                    {
+                        MessageBox.Show("Возможно вы используете старую (локальную) версию этого документа, проверьте что onedrive включен и попробуйте использовать \"Освободить место\" или же, если вы уверены что документ актуальный, проигнорируйте это сообщение",
+                                "Ой",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning);
+                    }
+                    // используйте fileName и creationDate по своему усмотрению
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error preparing changelog: {ex.Message}");
+            }
+        }
+
+        private DateTime RoundToMinute(DateTime dt)
+        {
+            return new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0);
         }
 
         private void Application_DocumentSaved(Visio.Document doc)
@@ -221,16 +267,21 @@ namespace QueenMasterVisio
                 string basePath = System.IO.Path.Combine(userProfile, "OneDrive", relativePath);
                 string directory = System.IO.Path.GetDirectoryName(basePath);
 
-                // 1. Проверяем и создаём основную папку
+                //Проверяем и создаём основную папку
                 if (!Directory.Exists(directory))
                     Directory.CreateDirectory(directory);
 
-                // 2. Папка для метафайлов
+                //Папка для метафайлов
                 string metafilesDir = System.IO.Path.Combine(directory, "Metafiles");
                 if (!Directory.Exists(metafilesDir))
                     Directory.CreateDirectory(metafilesDir);
 
-                // Заголовки (если есть)
+                //Папка для чейнджлогов
+                string changeLogsDir = System.IO.Path.Combine(metafilesDir, "ChangeLogs");
+                if (!Directory.Exists(changeLogsDir))
+                    Directory.CreateDirectory(changeLogsDir);
+
+                // Заголовки
                 string headers = pageExplorer.GetHeadlinesText();
                 if (!string.IsNullOrEmpty(headers))
                 {
@@ -239,12 +290,10 @@ namespace QueenMasterVisio
                 }
 
                 // Дальше Чейнджлог
-                string finalChangelogPath = System.IO.Path.Combine(metafilesDir, "changelog.txt");
-                CreateEmbeddedWindowChangeLog(finalChangelogPath);
+                CreateEmbeddedWindowChangeLog(changeLogsDir);
             }
             catch (Exception ex)
             {
-                // Логируем ошибку, а не проглатываем
                 Debug.WriteLine($"Error preparing changelog: {ex.Message}");
             }
         }

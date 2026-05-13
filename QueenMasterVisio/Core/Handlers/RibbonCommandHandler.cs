@@ -49,6 +49,7 @@ namespace QueenMasterVisio.Core.Handlers
                     break;
                 case "btnReload":
                     MasterAutoPlanPageService.CreateNewReloadPages(page);
+                    page.Document.UndoEnabled = true;
                     break;
                 ////////////////////////////////// Слои
                 case "btnAll":

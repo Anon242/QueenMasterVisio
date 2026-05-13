@@ -43,6 +43,7 @@
             // 
             // textBox1
             // 
+            this.textBox1.Font = new System.Drawing.Font("Cascadia Mono", 8.25F);
             this.textBox1.Location = new System.Drawing.Point(12, 36);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(324, 20);
@@ -51,6 +52,7 @@
             // 
             // richTextBox1
             // 
+            this.richTextBox1.Font = new System.Drawing.Font("Cascadia Mono", 8.25F);
             this.richTextBox1.Location = new System.Drawing.Point(12, 86);
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.Size = new System.Drawing.Size(324, 85);
@@ -60,10 +62,11 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
+            this.label1.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.label1.Font = new System.Drawing.Font("Cascadia Mono", 12F);
             this.label1.Location = new System.Drawing.Point(10, 9);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(192, 24);
+            this.label1.Size = new System.Drawing.Size(208, 24);
             this.label1.TabIndex = 2;
             this.label1.Text = "Заголовок обновления *";
             this.label1.UseCompatibleTextRendering = true;
@@ -71,21 +74,25 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
+            this.label2.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.label2.Font = new System.Drawing.Font("Cascadia Mono", 12F);
             this.label2.Location = new System.Drawing.Point(10, 60);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(222, 24);
+            this.label2.Size = new System.Drawing.Size(244, 24);
             this.label2.TabIndex = 3;
             this.label2.Text = "Описание  (не обязательно)";
             this.label2.UseCompatibleTextRendering = true;
             // 
             // button1
             // 
+            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.button1.Font = new System.Drawing.Font("Cascadia Mono", 8.25F);
             this.button1.Location = new System.Drawing.Point(12, 183);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(324, 23);
             this.button1.TabIndex = 5;
             this.button1.Text = "Отправить";
+            this.button1.UseCompatibleTextRendering = true;
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 

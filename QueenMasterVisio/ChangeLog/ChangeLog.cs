@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Office.Interop.Visio;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
 
 namespace QueenMasterVisio.ChangeLog
 {
@@ -15,11 +17,14 @@ namespace QueenMasterVisio.ChangeLog
 
         private string changeLogPath = "";
         private Microsoft.Office.Interop.Visio.Window myWindow;
-        public ChangeLog(Microsoft.Office.Interop.Visio.Window window, string changeLogPath)
+        Microsoft.Office.Interop.Visio.Application app;
+
+        public ChangeLog(Microsoft.Office.Interop.Visio.Window window,Microsoft.Office.Interop.Visio.Application app, string changeLogPath)
         {
             InitializeComponent();
             this.myWindow = window;
             this.changeLogPath = changeLogPath;
+            this.app = app;
         }
 
 
@@ -31,16 +36,29 @@ namespace QueenMasterVisio.ChangeLog
 
         private void button1_Click(object sender, EventArgs e)
         {
-            SendChangeLog();
+            if (string.IsNullOrEmpty(textBox1.Text))
+            {
+                textBox1.Text = "null";
+            }
+
+            ChangeModel model = new ChangeModel();
+            model.name = textBox1.Text;
+            model.description = richTextBox1.Text;
+            model.date = DateTime.Now; // .ToString("yyyyMMdd_HHmm")
+            model.author = app.UserName;
+
+            string fileName = "Changelog_" + model.author +"_" + model.date.ToString("yyyyMMdd_HHmm");
+            string text = $"{model.name}\n{model.description}\n{model.version}";
+
+            SendChangeLog(fileName,text);
             myWindow.Close();
         }
 
-        private void SendChangeLog()
+        private void SendChangeLog(string fileName, string text)
         {
             try
             {
-                string supertext = "2026-13-1\nЯ сделал тото тото\nВот пруфы лог лог лог\nлог лог лог";
-                System.IO.File.WriteAllText(changeLogPath, supertext);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(changeLogPath, fileName) , text);
             }
             catch (Exception)
             {

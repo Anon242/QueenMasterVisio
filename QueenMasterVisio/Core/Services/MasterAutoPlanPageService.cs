@@ -22,9 +22,9 @@ namespace QueenMasterVisio.Core.Services
 
             using (VisioEventSuppressor.SuppressShapeAdded())
             {
-                var thread = new Thread(() => { 
-                
-
+                var thread = new Thread(() => {
+                    // Ускоряет работу
+                    page.Document.UndoEnabled = false;
                     Selection selectionPlan = page.Application.ActiveWindow.Selection;
                     selectionPlan = page.CreateSelection(VisSelectionTypes.visSelTypeByLayer, VisSelectMode.visSelModeSkipSuper, "Plan");
 
@@ -217,6 +217,7 @@ namespace QueenMasterVisio.Core.Services
 
                     }
                     */
+                    page.Document.UndoEnabled = true;
                     backPage.Release();
                 });
                 thread.IsBackground = true;

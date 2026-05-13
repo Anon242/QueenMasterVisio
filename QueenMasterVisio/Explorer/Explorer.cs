@@ -730,8 +730,12 @@ namespace QueenMasterVisio
             if (listView1.SelectedItems.Count == 1)
             {
                 var selectedItem = listView1.SelectedItems[0];
-                string itemText = selectedItem.SubItems[2].Text;
-                GoToPageByNameU(itemText);
+                // Условия от клика на хедер
+                if(selectedItem.SubItems.Count >= 3)
+                {
+                    string itemText = selectedItem.SubItems[2].Text;
+                    GoToPageByNameU(itemText);
+                }
             }
         }
 
