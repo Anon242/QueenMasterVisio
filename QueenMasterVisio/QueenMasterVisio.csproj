@@ -230,18 +230,14 @@
     <Compile Include="Core\Services\MasterAutoPlanPageService.cs" />
     <Compile Include="Core\Services\RedSquareCreator.cs" />
     <Compile Include="Core\Services\WireAutoConnectionService.cs" />
-    <Compile Include="DeviceControl\DeviceCheck\DeviceCheck.cs">
-      <SubType>Form</SubType>
+    <Compile Include="DeviceControl\DeviceControlForm.xaml.cs">
+      <DependentUpon>DeviceControlForm.xaml</DependentUpon>
     </Compile>
-    <Compile Include="DeviceControl\DeviceCheck\DeviceCheck.Designer.cs">
-      <DependentUpon>DeviceCheck.cs</DependentUpon>
-    </Compile>
-    <Compile Include="DeviceControl\Form1.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="DeviceControl\Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
-    </Compile>
+    <Compile Include="DeviceControl\Models\FormItem.cs" />
+    <Compile Include="DeviceControl\Results\ValidationContext.cs" />
+    <Compile Include="DeviceControl\Results\ValidationResult.cs" />
+    <Compile Include="DeviceControl\Rules\IRule.cs" />
+    <Compile Include="DeviceControl\Rules\PlanTraccers.cs" />
     <Compile Include="Explorer\Explorer.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -258,12 +254,6 @@
     <Compile Include="Core\Models\Wire.cs" />
     <EmbeddedResource Include="ChangeLog\ChangeLog.resx">
       <DependentUpon>ChangeLog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="DeviceControl\DeviceCheck\DeviceCheck.resx">
-      <DependentUpon>DeviceCheck.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="DeviceControl\Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Explorer\Explorer.resx">
       <DependentUpon>Explorer.cs</DependentUpon>
@@ -311,6 +301,13 @@
   <ItemGroup>
     <EmbeddedResource Include="Ribbon\MainLentXml.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <Page Include="DeviceControl\DeviceControlForm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

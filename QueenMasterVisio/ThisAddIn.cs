@@ -202,8 +202,8 @@ namespace QueenMasterVisio
                 int startIndex = changelogPath.IndexOf("EscapeRoomDoctor");
             if (startIndex == -1)
                 return;
-               
 
+              
                 string relativePath = changelogPath.Substring(startIndex).Replace('/', '\\');
                 string userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
                 string basePath = System.IO.Path.Combine(userProfile, "OneDrive", relativePath);

@@ -10,6 +10,8 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using static System.Net.Mime.MediaTypeNames;
+using QueenMasterVisio.DeviceControl;
+using System.Windows;
 
 namespace QueenMasterVisio.Core.Handlers
 {
@@ -39,7 +41,7 @@ namespace QueenMasterVisio.Core.Handlers
         {
             if (!page.IsPlanPage())
                 return;
-
+            int scopeId = 0;
 
             switch (buttonId)
             {
@@ -48,7 +50,10 @@ namespace QueenMasterVisio.Core.Handlers
                         WireAutoConnectionService.autoConnect(page);
                     break;
                 case "btnReload":
+                    scopeId = Globals.ThisAddIn.Application.BeginUndoScope("Создание автостраниц");
                     MasterAutoPlanPageService.CreateNewReloadPages(page);
+                    Globals.ThisAddIn.Application.EndUndoScope(scopeId, true);
+
                     page.Document.UndoEnabled = true;
                     break;
                 ////////////////////////////////// Слои
@@ -66,12 +71,15 @@ namespace QueenMasterVisio.Core.Handlers
                 case "btnVx":
                 case "btnLx":
                 case "btnAx":
+                    scopeId = Globals.ThisAddIn.Application.BeginUndoScope("Переключение кнопок плана");
                     // Если будет проблема, тогда будем хранить план код в User.Shape
                     PageManager.SetOptionsAllPlanlayer(page, buttonId);
+                    Globals.ThisAddIn.Application.EndUndoScope(scopeId, true);
+
                     break;
                 ////////////////////////////////// Слои
                 case "btnGetLineData":
-                    Clipboard.SetText(CableService.Generate(page));
+                    System.Windows.Clipboard.SetText(CableService.Generate(page));
                     break;
                 case "btnSetHyperLinks":
                     //SetHyperLinks(page);
@@ -135,12 +143,12 @@ namespace QueenMasterVisio.Core.Handlers
                             if (RedSquareCreator.RedSquareGetLayer(page) != null)
                                 return;
                             // Нет наших данных в буфере обмена
-                            if (!(Clipboard.ContainsData("Visio 11.0 Shapes") || Clipboard.ContainsData("Visio 15.0 Shapes") || Clipboard.ContainsData("Visio 15.0 Text")))
+                            if (!(System.Windows.Clipboard.ContainsData("Visio 11.0 Shapes") || System.Windows.Clipboard.ContainsData("Visio 15.0 Shapes") || System.Windows.Clipboard.ContainsData("Visio 15.0 Text")))
                                 return;
 
                             page.Paste(VisCutCopyPasteCodes.visCopyPasteNoTranslate | VisCutCopyPasteCodes.visCopyPasteNoHealConnectors | VisCutCopyPasteCodes.visCopyPasteDontAddToContainers);
                             
-                            Clipboard.Clear();
+                            System.Windows.Clipboard.Clear();
                             // На случай если мы копировали с заблоканого слоя
                             RedSquareCreator.RedSquareDelete(page);
                         }
@@ -151,11 +159,28 @@ namespace QueenMasterVisio.Core.Handlers
                 case "btnLookDevicesOnPlan":
                     //DeviceCheck.DeviceCheck deviceCheck = new DeviceCheck.DeviceCheck(page.Application);
                     //deviceCheck.Show();
-                    Form1 form = new Form1();
-                    form.Show();
+                    //Form1 form = new Form1();
+                    DeviceControlForm control = new DeviceControlForm();
+                    System.Windows.Window window = new System.Windows.Window
+                    {
+                        Title = "Device Control",
+                        Content = control,
+                        Width = 800,
+                        Height = 450,
+                        WindowStartupLocation = WindowStartupLocation.CenterScreen
+                    };
+                    window.Show();
 
                     break;
                 case "btnCreateNewDevice":
+                    if (page.IsPlanPage())
+                    {
+                        System.Windows.Forms.MessageBox.Show("По техническим причинам, создать новый девайс находясь на плане не возможно, перейдите на другую страницу с девайсом и попробуйте снова",
+                                "Ошибка",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning);
+                        return;
+                    }
                     short pageIndex = (short)(page.Document.Pages.Count - 1);
 
                     Page newPage = DocumentManager.CreateNewPage(VisioEventAggregator.explorer.ShowRenameDialog("G" + pageIndex));
