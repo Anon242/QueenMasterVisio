@@ -17,6 +17,7 @@ namespace QueenMasterVisio.Core.Handlers
 {
     internal class RibbonCommandHandler
     {
+        System.Windows.Window window;
         public void onRibbonTracerBtnPlan(IRibbonControl control)
         {
             var visioApp = Globals.ThisAddIn.Application;
@@ -26,6 +27,22 @@ namespace QueenMasterVisio.Core.Handlers
 
         }
 
+        public void CreateFormDeviceControl()
+        {
+            
+            window = new System.Windows.Window
+            {
+                Title = "Device Control",
+                Content = new DeviceControlForm(Globals.ThisAddIn.Application),
+                MinWidth = 800,
+                MinHeight = 450,
+                Width = 800,
+                Height = 450,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                Topmost = true
+            };
+            window.Show();
+        }
         
         public void onRibbonTracerBtnDevice(IRibbonControl control)
         {
@@ -90,7 +107,9 @@ namespace QueenMasterVisio.Core.Handlers
                 case "btnDevicesCheck":
                     if (!page.IsPlanPage())
                         return;
-                    CheckerService.CheckDevicesInPlan(page); // Не верно 
+
+
+                    CreateFormDeviceControl();
                     break;
             }
         }
@@ -157,19 +176,7 @@ namespace QueenMasterVisio.Core.Handlers
 
                     break;
                 case "btnLookDevicesOnPlan":
-                    //DeviceCheck.DeviceCheck deviceCheck = new DeviceCheck.DeviceCheck(page.Application);
-                    //deviceCheck.Show();
-                    //Form1 form = new Form1();
-                    DeviceControlForm control = new DeviceControlForm();
-                    System.Windows.Window window = new System.Windows.Window
-                    {
-                        Title = "Device Control",
-                        Content = control,
-                        Width = 800,
-                        Height = 450,
-                        WindowStartupLocation = WindowStartupLocation.CenterScreen
-                    };
-                    window.Show();
+                    CreateFormDeviceControl();
 
                     break;
                 case "btnCreateNewDevice":

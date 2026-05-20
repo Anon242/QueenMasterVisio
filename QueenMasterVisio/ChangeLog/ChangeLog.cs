@@ -59,6 +59,7 @@ namespace QueenMasterVisio.ChangeLog
             try
             {
                 System.IO.File.WriteAllText(System.IO.Path.Combine(changeLogPath, fileName) , text);
+                System.IO.File.SetAttributes(System.IO.Path.Combine(changeLogPath, fileName), System.IO.File.GetAttributes(System.IO.Path.Combine(changeLogPath, fileName)) | System.IO.FileAttributes.ReadOnly);
             }
             catch (Exception)
             {

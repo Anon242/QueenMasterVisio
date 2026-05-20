@@ -15,7 +15,6 @@ namespace QueenMasterVisio.DeviceControl.Results
         public ResultSeverity Severity { get; set; }
         public Microsoft.Office.Interop.Visio.Shape TargetShape { get; set; }
         public Microsoft.Office.Interop.Visio.Page TargetPage { get; set; }
-        public double Expected { get; set; }
-        public double Actual { get; set; }
+
     }
 }

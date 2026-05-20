@@ -144,20 +144,23 @@
         </Border>
 
         <!-- Таблица -->
-        <DataGrid Grid.Row="1" x:Name="dataGrid" 
+        <DataGrid Grid.Row="1" x:Name="dataGrid" MouseDoubleClick="DataGrid_MouseDoubleClick"
                   ItemsSource="{Binding Items}" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False"
                   GridLinesVisibility="None"
                   SelectionUnit="FullRow">
             <DataGrid.Columns>
                 <!-- Иконка -->
-                <DataGridTemplateColumn Header="" Width="Auto" MinWidth="40">
+                <DataGridTemplateColumn Header="" Width="auto" MinWidth="30">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Image Source="{Binding Icon}" Width="10" Height="20" Stretch="Uniform"/>
+                            <TextBlock Text="{Binding Icon}" 
+                       Foreground="{Binding IconColor}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                
+
                 <!-- Код -->
                 <DataGridTextColumn Header="Код" Binding="{Binding Code}" Width="Auto" MinWidth="60">
                     <DataGridTextColumn.ElementStyle>
@@ -171,10 +174,10 @@
                 <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="*" MinWidth="200"/>
 
                 <!-- Фигура -->
-                <DataGridTextColumn Header="Фигура" Binding="{Binding Shape}" Width="Auto" MinWidth="100"/>
+                <DataGridTextColumn Header="Фигура" Binding="{Binding ShapeName }" Width="Auto" MinWidth="100"/>
 
                 <!-- Страница -->
-                <DataGridTextColumn Header="Страница" Binding="{Binding Page}" Width="Auto" MinWidth="70">
+                <DataGridTextColumn Header="Страница" Binding="{Binding PageName }" Width="Auto" MinWidth="70">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="HorizontalAlignment" Value="Center"/>

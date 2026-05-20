@@ -1,6 +1,7 @@
 ﻿using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Visio;
 using QueenMasterVisio.Core.Handlers;
+using QueenMasterVisio.Core.Services;
 using QueenMasterVisio.Ribbon;
 using System;
 using System.Diagnostics;
@@ -26,6 +27,8 @@ namespace QueenMasterVisio
         private Visio.Window customWindow;
         private Visio.Window customWindowChangeLog;
 
+        public static LocalLinks links;
+
         [DllImport("user32.dll")]
         private static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
 
@@ -45,6 +48,7 @@ namespace QueenMasterVisio
             this.Application.BeforeDocumentClose += new Visio.EApplication_BeforeDocumentCloseEventHandler(OnBeforeDocumentClose);
             this.Application.PageAdded += new Visio.EApplication_PageAddedEventHandler(OnPageAdded);
             this.Application.PageChanged += new Visio.EApplication_PageChangedEventHandler(OnPageChanged);
+
         }
 
         private void OnPageChanged(Page Page)
@@ -83,10 +87,11 @@ namespace QueenMasterVisio
 
         private void CreateEmbeddedWindowChangeLog(string path)
         {
+            this.Application.OnComponentEnterState(Visio.VisOnComponentEnterCodes.visComponentStateModal,true);
             try
             {
                 // Создаем встроенное окно в Visio
-                customWindowChangeLog = this.Application.ActiveWindow.Windows.Add("Change Log",                                           // Заголовок
+                customWindowChangeLog = this.Application.ActiveWindow.Windows.Add("Change Log",   // Заголовок
                     (Visio.VisWindowStates.visWSVisible |
                            Visio.VisWindowStates.visWSFloating),          // Состояние - видимое, закреплено справа
                     (short)Visio.VisWinTypes.visAnchorBarAddon,              // Тип - панель дополнения
@@ -104,6 +109,10 @@ namespace QueenMasterVisio
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error creating embedded window: {ex.Message}");
+            }
+            finally
+            {
+                this.Application.OnComponentEnterState(Visio.VisOnComponentEnterCodes.visComponentStateModal,false);
             }
         }
         private void EmbedUserControlInWindow()
@@ -174,6 +183,8 @@ namespace QueenMasterVisio
                 return;
             // Explorer
             CreateEmbeddedWindow();
+            Debug.WriteLine("Открыт документ и развернут explorer");
+
 
             //this.Application.BeforeDocumentSave += new Visio.EApplication_BeforeDocumentSaveEventHandler(Application_BeforeDocumentSave);
             this.Application.DocumentSaved += new Visio.EApplication_DocumentSavedEventHandler(Application_DocumentSaved);
@@ -184,62 +195,51 @@ namespace QueenMasterVisio
 
             pageExplorer.UpdateExplorer();
 
+            links = new LocalLinks(doc.FullName);
 
-            // Проверим че там в логах TEEEEEEEEEEEST TEEEEST
-            try
+            System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
+            timer.Interval = 3000;
+            timer.Tick += (s, e) =>
             {
-               
-
-                string changelogPath = doc.FullName;
-            if (string.IsNullOrEmpty(changelogPath))
-                return;
-                
-
-                if (!(changelogPath.Contains("EscapeRoomDoctor") && changelogPath.Contains("Project")))
-                return;
-                
-
-                int startIndex = changelogPath.IndexOf("EscapeRoomDoctor");
-            if (startIndex == -1)
-                return;
-
-              
-                string relativePath = changelogPath.Substring(startIndex).Replace('/', '\\');
-                string userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
-                string basePath = System.IO.Path.Combine(userProfile, "OneDrive", relativePath);
-                string directory = System.IO.Path.GetDirectoryName(basePath);
-                //Папка для метафайлов
-                string metafilesDir = System.IO.Path.Combine(directory, "Metafiles");
-                if (!Directory.Exists(metafilesDir))
-                    Directory.CreateDirectory(metafilesDir);
-
-                //Папка для чейнджлогов
-                string changeLogsDir = System.IO.Path.Combine(metafilesDir, "ChangeLogs");
-                if (!Directory.Exists(changeLogsDir))
-                    Directory.CreateDirectory(changeLogsDir);
-
-                var lastFile = new DirectoryInfo(changeLogsDir).GetFiles().OrderByDescending(f => f.CreationTime).FirstOrDefault();
-                if (lastFile != null)
+                timer.Stop();
+                timer.Dispose();
+                try
                 {
-                    string fileName = lastFile.Name;
-                    DateTime creationDate = RoundToMinute(lastFile.CreationTime);
-                    DateTime vsdxLast = RoundToMinute(File.GetLastWriteTime(basePath));
-                    if (Math.Abs((creationDate - vsdxLast).TotalMinutes) > 1)
+                    
+
+                    Debug.WriteLine("Получили чейгнджлоги");
+
+                    var lastFile = new DirectoryInfo(links.ChangeLogsDir).GetFiles().OrderByDescending(f => f.CreationTime).FirstOrDefault();
+                    Debug.WriteLine(lastFile);
+                    if (lastFile != null)
                     {
-                        MessageBox.Show("Возможно вы используете старую (локальную) версию этого документа, проверьте что onedrive включен и попробуйте использовать \"Освободить место\" или же, если вы уверены что документ актуальный, проигнорируйте это сообщение",
+                        string fileName = lastFile.Name;
+                        DateTime creationDate = RoundToMinute(lastFile.LastWriteTime);
+                        DateTime vsdxLast = RoundToMinute(File.GetLastWriteTime(links.BasePath));
+
+                        Debug.WriteLine(creationDate);
+                        Debug.WriteLine(vsdxLast);
+
+                        if (Math.Abs((creationDate - vsdxLast).TotalMinutes) > 1)
+                        {
+
+                            MessageBox.Show("Возможно вы используете старую (локальную) версию этого документа, проверьте что onedrive включен и попробуйте использовать \"Освободить место\" или же, если вы уверены что документ актуальный, проигнорируйте это сообщение",
                                 "Ой",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Warning);
+                        }
+
+
+
                     }
-                    // используйте fileName и creationDate по своему усмотрению
+
                 }
-
-
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error preparing changelog: {ex.Message}");
-            }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error preparing changelog: {ex.Message}");
+                }
+            };
+            timer.Start();
         }
 
         private DateTime RoundToMinute(DateTime dt)
@@ -249,48 +249,18 @@ namespace QueenMasterVisio
 
         private void Application_DocumentSaved(Visio.Document doc)
         {
-            string changelogPath = doc.FullName; 
-            if (string.IsNullOrEmpty(changelogPath))
-                return;
-
-            if(!(changelogPath.Contains("EscapeRoomDoctor") && changelogPath.Contains("Project")))
-                return;
-
-            int startIndex = changelogPath.IndexOf("EscapeRoomDoctor");
-            if (startIndex == -1)
-                return;
             try
             {
-                // Пишем заголовки
-                string relativePath = changelogPath.Substring(startIndex).Replace('/', '\\');
-                string userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
-                string basePath = System.IO.Path.Combine(userProfile, "OneDrive", relativePath);
-                string directory = System.IO.Path.GetDirectoryName(basePath);
-
-                //Проверяем и создаём основную папку
-                if (!Directory.Exists(directory))
-                    Directory.CreateDirectory(directory);
-
-                //Папка для метафайлов
-                string metafilesDir = System.IO.Path.Combine(directory, "Metafiles");
-                if (!Directory.Exists(metafilesDir))
-                    Directory.CreateDirectory(metafilesDir);
-
-                //Папка для чейнджлогов
-                string changeLogsDir = System.IO.Path.Combine(metafilesDir, "ChangeLogs");
-                if (!Directory.Exists(changeLogsDir))
-                    Directory.CreateDirectory(changeLogsDir);
-
                 // Заголовки
                 string headers = pageExplorer.GetHeadlinesText();
                 if (!string.IsNullOrEmpty(headers))
                 {
-                    string headersPath = System.IO.Path.Combine(metafilesDir, "headers.txt");
+                    string headersPath = System.IO.Path.Combine(links.MetafilesDir, "headers.txt");
                     File.WriteAllText(headersPath, headers);
                 }
 
                 // Дальше Чейнджлог
-                CreateEmbeddedWindowChangeLog(changeLogsDir);
+                CreateEmbeddedWindowChangeLog(links.ChangeLogsDir);
             }
             catch (Exception ex)
             {

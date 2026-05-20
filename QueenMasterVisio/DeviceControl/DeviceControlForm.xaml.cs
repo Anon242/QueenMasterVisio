@@ -1,6 +1,12 @@
-﻿using System;
+﻿using Microsoft.Office.Interop.Visio;
+using QueenMasterVisio.Core.Helpers;
+using QueenMasterVisio.DeviceControl.Results;
+using QueenMasterVisio.DeviceControl.Rules;
+using QueenMasterVisio.DeviceControl.Service;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -11,10 +17,14 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using Application = Microsoft.Office.Interop.Visio.Application;
+using Page = Microsoft.Office.Interop.Visio.Page;
 
 namespace QueenMasterVisio.DeviceControl
 {
@@ -24,11 +34,13 @@ namespace QueenMasterVisio.DeviceControl
     public partial class DeviceControlForm : System.Windows.Controls.UserControl
     {
         private ICollectionView _view;
-        public DeviceControlForm()
+        private Application _app;
+        public DeviceControlForm(Application app)
         {
+            _app = app;
             InitializeComponent();
-            LoadData();
-            SetupFiltering();
+            
+            //SetupFiltering();
         }
         private void SetupFiltering()
         {
@@ -66,35 +78,65 @@ namespace QueenMasterVisio.DeviceControl
                    (showWarnings && item.classError == 2) ||
                    (showMessages && item.classError == 1);
         }
-        private void LoadData()
-        {
-            // Пример данных: список объектов
-            var items = new List<Models.FormItem>()
-            {
-                new Models.FormItem { Code = 101, Description = "Красный квадрат", Shape = "Квадрат", Page = 12 },
-                new Models.FormItem { Code = 102, Description = "Синий кругкругкругкруг кругкруг", Shape = "Круг", Page = 15 },
-                new Models.FormItem { Code = 103, Description = "Зелёный треугольник", Shape = "Треугольник", Page = 20 },
-                new Models.FormItem { Code = 201, Description = "Красный квадрат", Shape = "Квадрат", Page = 12 },
-                new Models.FormItem { Code = 202, Description = "Синий кругкругкругкруг кругкруг", Shape = "Круг", Page = 15 },
-                new Models.FormItem { Code = 203, Description = "Зелёный треугольник", Shape = "Треугольник", Page = 20 },
-                new Models.FormItem { Code = 201, Description = "Красный квадрат", Shape = "Квадрат", Page = 12 },
-                new Models.FormItem { Code = 102, Description = "Синий кругкругкругкруг кругкруг", Shape = "Круг", Page = 15 },
-                new Models.FormItem { Code = 303, Description = "Зелёный треугольник", Shape = "Треугольник", Page = 20 },
-                new Models.FormItem { Code = 301, Description = "Красный квадрат", Shape = "Квадрат", Page = 12 },
-                new Models.FormItem { Code = 302, Description = "Синий кругкругкругкруг кругкруг", Shape = "Круг", Page = 15 },
-                new Models.FormItem { Code = 303, Description = "Зелёный треугольник", Shape = "Треугольник", Page = 20 }
-            };
 
-            dataGrid.ItemsSource = items;
-        }
 
         private void buttonCheck_Click(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine(comboDataSource.SelectedIndex);
-            // Страницу
-            if(comboDataSource.SelectedIndex == 0)
+            var pagesRules = new List<IRule> 
+            { 
+                new PlanTraccers(), // Проверяет трасеры
+                new PageName(), // Проверяет имя старницы
+                new Terminals(), // Проверяет клеммы
+                new Cables(), // Проверяет кабели
+               
+            };
+            var pagesDocRules = new List<IRule>
             {
-                // Делаем запрос на проверку страницы
+                 new DocumentMasters(), // Проверка на дубликаты
+            };
+
+            Debug.WriteLine(_app.ActiveDocument);
+
+            // Страницу
+            if (comboDataSource.SelectedIndex == 0)
+            {
+                Page page = _app.ActivePage;
+
+                Results.Validation validation = new Results.Validation(pagesRules,page);
+                dataGrid.ItemsSource = validation.Validate();
+                
+            }
+            else if (comboDataSource.SelectedIndex == 1) 
+            {
+                MessageBoxResult mresult = System.Windows.MessageBox.Show("Проверка всех страниц может занять много времени, вы точно хотите выполнить проверку всего документа?","Подтверждение",MessageBoxButton.YesNo,MessageBoxImage.Question);
+
+                if (mresult != MessageBoxResult.Yes)
+                    return;
+
+                List<Models.FormItem> items = new List<Models.FormItem>();
+                foreach (Page page in _app.ActiveDocument.Pages)
+                {
+                    Results.Validation validation = new Results.Validation(pagesRules, page);
+                    items.AddRange(validation.Validate());
+                }
+                // Временная заглушка
+                Results.Validation validation2 = new Results.Validation(pagesDocRules, _app.ActivePage);
+                items.AddRange(validation2.Validate());
+                dataGrid.ItemsSource = items;
+            }
+        }
+  
+        private void DataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // Получаем объект, на котором произошёл двойной клик
+            Models.FormItem selectedItem = dataGrid.SelectedItem as Models.FormItem; // замените на ваш класс
+            if (selectedItem != null)
+            {
+                if (selectedItem.Shape == null || selectedItem.Page == null)
+                    return;
+
+                Navigate.NavigateToShape(_app, selectedItem.Shape);
+                
             }
         }
     }

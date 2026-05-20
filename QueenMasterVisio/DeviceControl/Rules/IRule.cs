@@ -12,8 +12,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
     public interface IRule
     {
         string Name { get; }
-        ResultSeverity Severity { get; set; }
-        bool IsApplicable(Microsoft.Office.Interop.Visio.Shape shape);
-        IEnumerable<ValidationResult> Validate(Microsoft.Office.Interop.Visio.Shape shape, ValidationContext context);
+        IEnumerable<ValidationResult> Validate(Microsoft.Office.Interop.Visio.Page page, ValidationEngine engine);
+
     }
 }

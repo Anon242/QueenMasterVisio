@@ -201,6 +201,14 @@ namespace QueenMasterVisio.Core.Helpers
             return shape.CellsU[cellName].FormulaU.Replace("\"", "");
         }
 
+        /// <summary>Получить строковой результат ячейки (в дюймах).</summary>
+        public static string GetCellResultString(this Shape shape, string cellName)
+        {
+            if (!shape.HasCell(cellName))
+                return string.Empty;
+            return shape.CellsU[cellName].ResultStr[VisUnitCodes.visNoCast].Replace("\"", "");
+        }
+
         public static void SetUserCellFormulaU(this Shape shape, string cellName, string value)
         {
             const short section = (short)VisSectionIndices.visSectionUser;
