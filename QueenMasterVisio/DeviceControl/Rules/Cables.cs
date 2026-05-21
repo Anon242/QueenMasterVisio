@@ -67,7 +67,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
                 {
 
                     Array gluedShapes = _cable.GluedShapes((short)Visio.VisGluedShapesFlags.visGluedShapesAll1D, "", null);
-                    if (gluedShapes.Length == 0)
+                    if (gluedShapes.Length == 0 && !cable.code.Contains("R"))
                     {
                         yield return new ValidationResult
                         {
@@ -97,6 +97,20 @@ namespace QueenMasterVisio.DeviceControl.Rules
                     {
                         bool isFinded = false;
                         // Пробуем найти
+                        if (cable.deviceName.Contains("J"))
+                        {
+                            yield return new ValidationResult
+                            {
+                                RuleName = Name,
+                                TargetPage = page,
+                                TargetShape = _cable,
+                                Severity = ResultSeverity.Info,
+                                Message = "Кабель " + cable.deviceName + " " + cable.type + " " + cable.code + " не может быть опознан, но учтен",
+                            };
+                            isFinded = true;
+                            goto Finish;
+                        }
+                        if(cable.deviceName.Contains("G") || cable.deviceName.Contains("L"))
                         foreach (Page _page in page.Document.Pages)
                         {
                             if (_page.Name.Contains(cable.deviceName + " "))

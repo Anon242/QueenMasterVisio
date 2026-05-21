@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using static System.Net.Mime.MediaTypeNames;
 using QueenMasterVisio.DeviceControl;
 using System.Windows;
+using System.Collections.Generic;
 
 namespace QueenMasterVisio.Core.Handlers
 {
@@ -76,8 +77,8 @@ namespace QueenMasterVisio.Core.Handlers
                 ////////////////////////////////// Слои
                 case "btnAll":
                 case "btnPlan":
-                case "btnOther_1":
-                case "btnOther_2":
+                case "btnOther1":
+                case "btnOther2":
                 case "btnPx":
                 case "btnEx":
                 case "btnRx":
@@ -101,9 +102,7 @@ namespace QueenMasterVisio.Core.Handlers
                 case "btnSetHyperLinks":
                     //SetHyperLinks(page);
                     break;
-                case "btnLookDevices":
-                    //explorer.LookDevices(page);
-                    break;
+           
                 case "btnDevicesCheck":
                     if (!page.IsPlanPage())
                         return;
@@ -139,6 +138,37 @@ namespace QueenMasterVisio.Core.Handlers
                 case "btnCreatePlan":
                     PageManager.CreateNewPlan(page);
                     
+                    break;
+                case "btnLookLogs":
+                    try
+                    {
+                        List<string> paths = new List<string>();
+                        string changeLogsDir = ThisAddIn.links.ChangeLogsDir;
+                        foreach (var file in System.IO.Directory.GetFiles(changeLogsDir))
+                        {
+                            if (file.Contains("Changelog_"))
+                                paths.Add(file);
+                        }
+                       
+                        window = new System.Windows.Window
+                        {
+                            Title = "Logs",
+                            Content = new LogViewer.LogView(paths),
+                            MinWidth = 800,
+                            MinHeight = 450,
+                            Width = 800,
+                            Height = 450,
+                            WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                            Topmost = true
+                        };
+                        window.Show();
+                    }
+                    catch (System.Exception)
+                    {
+
+                        throw;
+                    }
+            
                     break;
                 case "btnCopyAll":
                     try

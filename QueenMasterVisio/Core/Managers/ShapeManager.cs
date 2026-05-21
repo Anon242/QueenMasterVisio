@@ -206,8 +206,11 @@ namespace QueenMasterVisio.Core.Managers
                         shape.CellsU["PinY"].Formula = $"GUARD(User.BeginY + User.T * User.LineDY)";
 					*/
 
-
-                    shape.CellsU["Char.Color"].FormulaU = WireService.GetWireByName(activePlanCode).color;
+                    var color = WireService.GetWireByName(activePlanCode).color;
+                    if(color != null)
+                        shape.CellsU["Char.Color"].FormulaU = color;
+                    else
+                        shape.CellsU["Char.Color"].FormulaU = "THEMEGUARD(RGB(0,0,0))";
                     //               }
                     //catch
                     //{

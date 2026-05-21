@@ -1,0 +1,19 @@
+﻿<UserControl x:Class="QueenMasterVisio.LogViewer.LogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:QueenMasterVisio.LogViewer"
+             mc:Ignorable="d" 
+             d:DesignHeight="350" d:DesignWidth="1000">
+    <Grid>
+        <DataGrid x:Name="LogDataGrid" AutoGenerateColumns="False" IsReadOnly="True" Margin="10">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Время" Binding="{Binding time}" Width="140"/>
+                <DataGridTextColumn Header="Автор" Binding="{Binding author}" Width="100"/>
+                <DataGridTextColumn Header="Имя" Binding="{Binding name}" Width="350"/>
+                <DataGridTextColumn Header="Описание" Binding="{Binding comment}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

@@ -19,6 +19,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
         {
             if (!page.IsPlanPage() && !page.IsAutoTracePage())
             {
+                /*
                 if (!(new Regex(@"^G\d").IsMatch(page.Name) || new Regex(@"^L\d").IsMatch(page.Name)))
                 {
                     yield return new ValidationResult
@@ -30,6 +31,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
                         Message = "Неопределенное название страницы",
                     };
                 }
+                */
 
                 if(page.Name.Length >= 65)
                 {

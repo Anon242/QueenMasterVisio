@@ -65,7 +65,7 @@ namespace QueenMasterVisio.DeviceControl
         {
             if (item == null) return false;
 
-            // Если ни одна кнопка не нажата – показываем всё (или ничего – решите сами)
+            // Если ни одна кнопка не нажата показываем всё 
             bool showErrors = buttonErrors.IsChecked == true;
             bool showWarnings = buttonWarnings.IsChecked == true;
             bool showMessages = buttonMessages.IsChecked == true;

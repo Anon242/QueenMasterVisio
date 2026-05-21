@@ -21,7 +21,7 @@
 
 				</group>
 				<group id="MyGroup64" label="Информация">
-					<button id="btnLookDevices" label="Показать устройства" size="large" onAction="OnButtonClickDevice" imageMso="CustomizeMySite"/>
+					<button id="btnLookLogs" label="Показать логи" size="large" onAction="OnButtonClickDevice" imageMso="CustomizeMySite"/>
 					<button id="btnLookDevicesOnPlan" label="Проверить страницу" size="large" onAction="OnButtonClickDevice" imageMso="CustomizeMySite"/>
 				</group>
 
@@ -61,8 +61,8 @@
 						<button getLabel="GetLayerButtonLabel"  id="btnVx" size="large" onAction="OnButtonClickPlan" imageMso="RecordsSaveRecord"/>
 						<button getLabel="GetLayerButtonLabel"  id="btnLx" size="large" onAction="OnButtonClickPlan" imageMso="_3DLightingClassic"/>
 						<button getLabel="GetLayerButtonLabel"  id="btnAx" size="large" onAction="OnButtonClickPlan" imageMso="NewContact"/>
-						<button getLabel="GetLayerButtonLabel"  id="btnOther_1"  size="large" onAction="OnButtonClickPlan" imageMso="RightToLeftDocument"/>
-						<button getLabel="GetLayerButtonLabel"  id="btnOther_2"  size="large" onAction="OnButtonClickPlan" imageMso="HeaderFooterPageNumberInsert"/>
+						<button getLabel="GetLayerButtonLabel"  id="btnOther1"  size="large" onAction="OnButtonClickPlan" imageMso="RightToLeftDocument"/>
+						<button getLabel="GetLayerButtonLabel"  id="btnOther2"  size="large" onAction="OnButtonClickPlan" imageMso="HeaderFooterPageNumberInsert"/>
 						<button getLabel="GetLayerButtonLabel"  id="btnAll"  size="large" onAction="OnButtonClickPlan" imageMso="CategorizeMenu"/>
 					</box>
 				</group>
