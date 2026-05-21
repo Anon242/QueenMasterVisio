@@ -49,7 +49,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
                             };
                         }
                     }
-                    else if(!_cable.NameU.Contains("Cable.440"))
+                    else if(!_cable.Name.Contains("Cable.440"))
                     {
                         yield return new ValidationResult
                         {
@@ -99,7 +99,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
                         // Пробуем найти
                         foreach (Page _page in page.Document.Pages)
                         {
-                            if (_page.NameU.Contains(cable.deviceName + " "))
+                            if (_page.Name.Contains(cable.deviceName + " "))
                             {
 
                                 List<Shape> _cables = _GetCables(_page);
@@ -114,7 +114,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
                                             TargetPage = page,
                                             TargetShape = _cable,
                                             Severity = ResultSeverity.Info,
-                                            Message = "Кабель " + cable.deviceName + " " + cable.type + " " + cable.code + " найден на странице: " + _page.NameU.Replace("\"", ""),
+                                            Message = "Кабель " + cable.deviceName + " " + cable.type + " " + cable.code + " найден на странице: " + _page.Name.Replace("\"", ""),
                                         };
                                         isFinded = true;
                                         goto Finish;
@@ -149,7 +149,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
             foreach (Shape shape in engine.Shapes)
             {
                 // Обычная клемма
-                if (shape.NameU.Contains("Cable"))
+                if (shape.Name.Contains("Cable"))
                 {
                     shapes.Add(shape);
                 }
@@ -163,7 +163,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
             foreach (Shape shape in engine.Shapes)
             {
                 // Обычная клемма
-                if (shape.NameU.Contains("Cable"))
+                if (shape.Name.Contains("Cable"))
                 {
                     shapes.Add(shape);
                 }
