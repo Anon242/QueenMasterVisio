@@ -190,7 +190,7 @@ namespace QueenMasterVisio.Core.Helpers
         /// <summary>Установить формулу в любую ячейку (удобнее CellFormulaSet)</summary>
         public static void SetFormula(this Shape shape, string cellName, string formula)
         {
-            shape.CellsU[cellName].FormulaU = formula;
+            shape.CellsU[cellName].FormulaU = '"' + formula + '"';
         }
 
         /// <summary>Получить значение свойства (Prop.)</summary>

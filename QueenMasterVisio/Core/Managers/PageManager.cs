@@ -27,7 +27,7 @@ namespace QueenMasterVisio.Core.Managers
             int id = planCount;
 
             // Создаем новую страницу
-            Page newPage = DocumentManager.CreateNewPage(VisioEventAggregator.explorer.ShowRenameDialog("Plan." +id));
+            Page newPage = DocumentManager.CreateNewPage(QueenMasterVisio.RenameDialog.ShowRenameDialog("Plan." +id));
            
             newPage.SetUserCell("pageCode", "Plan");
             newPage.SetUserCell("id", id.ToString());

@@ -217,6 +217,7 @@
     </Compile>
     <Compile Include="ChangeLog\ChangeModel.cs" />
     <Compile Include="Core\Helpers\VisioEventSuppressor.cs" />
+    <Compile Include="Core\Managers\CableManager.cs" />
     <Compile Include="Core\Managers\DocumentManager.cs" />
     <Compile Include="Core\Managers\LayerManager.cs" />
     <Compile Include="Core\Managers\PageManager.cs" />
@@ -227,6 +228,7 @@
     <Compile Include="Core\Services\CableService.cs" />
     <Compile Include="Core\Handlers\RibbonCommandHandler.cs" />
     <Compile Include="Core\Helpers\VisioExtensions.cs" />
+    <Compile Include="Core\Services\CreateDeviceInPlan.cs" />
     <Compile Include="Core\Services\LocalLinks.cs" />
     <Compile Include="Core\Services\MasterAutoPlanPageService.cs" />
     <Compile Include="Core\Services\RedSquareCreator.cs" />
@@ -252,6 +254,7 @@
     <Compile Include="Explorer\Explorer.Designer.cs">
       <DependentUpon>Explorer.cs</DependentUpon>
     </Compile>
+    <Compile Include="Explorer\RenameDialog.cs" />
     <Compile Include="LogViewer\LogView.xaml.cs">
       <DependentUpon>LogView.xaml</DependentUpon>
     </Compile>

@@ -93,7 +93,9 @@
 				<group id="MyGroup71" label="Данные">
 					<button id="btnGetLineData" label="Генерация кабель-журнала" size="large" onAction="OnButtonClickPlan" imageMso="BuildingBlocksSaveTableOfContents"/>
 					<button id="btnSetHyperLinks" label="Назначить ссылки" size="large" onAction="OnButtonClickPlan" imageMso="BuildingBlocksSaveTableOfContents"/>
-
+				</group>
+				<group id="MyGroup81" label="Создание">
+					<button id="btnCreateNewDeviceInPlan" label="Создать новый девайс на основе объекта" size="large" onAction="OnButtonClickPlan" imageMso="OrganizationChartSelectLevel"/>
 				</group>
 			</tab>
 

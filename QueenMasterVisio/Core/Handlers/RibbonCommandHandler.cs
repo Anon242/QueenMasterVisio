@@ -68,11 +68,21 @@ namespace QueenMasterVisio.Core.Handlers
                         WireAutoConnectionService.autoConnect(page);
                     break;
                 case "btnReload":
-                    scopeId = Globals.ThisAddIn.Application.BeginUndoScope("Создание автостраниц");
-                    MasterAutoPlanPageService.CreateNewReloadPages(page);
-                    Globals.ThisAddIn.Application.EndUndoScope(scopeId, true);
-
-                    page.Document.UndoEnabled = true;
+                    try
+                    {
+                        scopeId = Globals.ThisAddIn.Application.BeginUndoScope("Создание автостраниц");
+                        MasterAutoPlanPageService.CreateNewReloadPages(page);
+                    }
+                    catch (System.Exception)
+                    {
+                        throw;
+                    }
+                    finally
+                    {
+                        Globals.ThisAddIn.Application.EndUndoScope(scopeId, true);
+                        page.Document.UndoEnabled = true;
+                    }
+   
                     break;
                 ////////////////////////////////// Слои
                 case "btnAll":
@@ -102,13 +112,17 @@ namespace QueenMasterVisio.Core.Handlers
                 case "btnSetHyperLinks":
                     //SetHyperLinks(page);
                     break;
-           
+                
                 case "btnDevicesCheck":
                     if (!page.IsPlanPage())
                         return;
 
-
                     CreateFormDeviceControl();
+                    break;
+
+                case "btnCreateNewDeviceInPlan":
+                    Microsoft.Office.Interop.Visio.Selection selection = Globals.ThisAddIn.Application.ActiveWindow.Selection;
+                    CreateDeviceInPlan.CreatePage(page, selection);
                     break;
             }
         }
@@ -220,7 +234,7 @@ namespace QueenMasterVisio.Core.Handlers
                     }
                     short pageIndex = (short)(page.Document.Pages.Count - 1);
 
-                    Page newPage = DocumentManager.CreateNewPage(VisioEventAggregator.explorer.ShowRenameDialog("G" + pageIndex));
+                    Page newPage = DocumentManager.CreateNewPage(QueenMasterVisio.RenameDialog.ShowRenameDialog("G" + pageIndex));
                     
                     if (newPage.Name[0] == 'G')
                     {
