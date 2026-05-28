@@ -165,27 +165,39 @@ namespace QueenMasterVisio
             {
                 if (doc.Name.Contains(".vss"))
                     return;
-                CreateEmbeddedWindow();
-                Debug.WriteLine("Открыт документ и развернут explorer");
-
-                this.Application.DocumentSaved += new Visio.EApplication_DocumentSavedEventHandler(Application_DocumentSaved);
-                myPage = new VisioEventAggregator(this.Application, pageExplorer);
-                this.Application.ShapeChanged += new Visio.EApplication_ShapeChangedEventHandler(myPage.OnShapeChanged);
-                this.Application.ShapeAdded += new Visio.EApplication_ShapeAddedEventHandler(myPage.OnShapeAdded);
-                myPage.start();
-
-                pageExplorer.UpdateExplorer();
-
-                links = new LocalLinks(doc.FullName);
+             
 
                 System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
-                timer.Interval = 3000;
+                timer.Interval = 6000;
                 timer.Tick += (s, e) =>
                 {
                     timer.Stop();
                     timer.Dispose();
                     SafeExecute(() =>
                     {
+
+                        CreateEmbeddedWindow();
+                        Debug.WriteLine("Открыт документ и развернут explorer");
+
+                        this.Application.DocumentSaved += new Visio.EApplication_DocumentSavedEventHandler(Application_DocumentSaved);
+                        myPage = new VisioEventAggregator(this.Application, pageExplorer);
+                        this.Application.ShapeChanged += new Visio.EApplication_ShapeChangedEventHandler(myPage.OnShapeChanged);
+                        this.Application.ShapeAdded += new Visio.EApplication_ShapeAddedEventHandler(myPage.OnShapeAdded);
+                        myPage.start();
+
+                        pageExplorer.UpdateExplorer();
+
+                        links = new LocalLinks(doc.FullName);
+
+                        if (links.isLocalFile)
+                        {
+                            MessageBox.Show("Документ локальный, запрет вывода окна сохранения и генерации хедеров (временное предупреждение)",
+                                "Локальный документ",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning);
+                            return;
+                        }
+
                         Debug.WriteLine("Получили чейгнджлоги");
 
                         var lastFile = new DirectoryInfo(links.ChangeLogsDir).GetFiles().OrderByDescending(f => f.CreationTime).FirstOrDefault();
@@ -222,6 +234,14 @@ namespace QueenMasterVisio
         {
             SafeExecute(() =>
             {
+                if (links.isLocalFile)
+                {
+                    MessageBox.Show("Документ локальный, запрет вывода окна сохранения и генерации хедеров (временное предупреждение)",
+                        "Локальный документ",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
                 string headers = pageExplorer.GetHeadlinesText();
                 if (!string.IsNullOrEmpty(headers))
                 {

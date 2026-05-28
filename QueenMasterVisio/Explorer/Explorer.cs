@@ -1,4 +1,5 @@
 ﻿using Microsoft.Office.Interop.Visio;
+using QueenMasterVisio.Core.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -389,6 +390,7 @@ namespace QueenMasterVisio
                                     regexPlanIndexColor = 0;
                             }
 
+                           
                             listView1.SmallImageList.Images.Add(CreateColorIcon(gradient[regexPlanIndexColor]));
                         }
              
@@ -401,7 +403,10 @@ namespace QueenMasterVisio
                         }
 
                         if (titleListNum == 2)
+                        {
                             listView1.SmallImageList.Images.Add(CreateColorIcon(System.Drawing.Color.FromArgb(255, 5, 112, 176)));
+
+                        }
                         
                         else if (titleListNum == 3)
                             listView1.SmallImageList.Images.Add(CreateColorIcon(System.Drawing.Color.FromArgb(255, 253, 161, 60)));

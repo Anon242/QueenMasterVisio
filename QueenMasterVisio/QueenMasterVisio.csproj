@@ -34,7 +34,7 @@
     <PublishUrl>QueenMasterVisio\</PublishUrl>
     <InstallUrl />
     <TargetCulture>ru</TargetCulture>
-    <ApplicationVersion>1.0.0.33</ApplicationVersion>
+    <ApplicationVersion>1.0.0.34</ApplicationVersion>
     <AutoIncrementApplicationRevision>true</AutoIncrementApplicationRevision>
     <UpdateEnabled>true</UpdateEnabled>
     <UpdateInterval>7</UpdateInterval>
@@ -209,6 +209,9 @@
     can be found.
   -->
   <ItemGroup>
+    <Compile Include="Binding\BindingForm.xaml.cs">
+      <DependentUpon>BindingForm.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ChangeLog\ChangeLog.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -307,6 +310,10 @@
     <EmbeddedResource Include="Ribbon\MainLentXml.xml" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Binding\BindingForm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="DeviceControl\DeviceControlForm.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

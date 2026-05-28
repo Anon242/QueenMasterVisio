@@ -21,6 +21,8 @@ namespace QueenMasterVisio.Core.Services
         public string ChangeLogsDir { get; }
         public string VersionsFile { get; }
 
+        public bool isLocalFile = true;
+
         public LocalLinks(string documentFullName)
         {
             if (string.IsNullOrEmpty(documentFullName))
@@ -32,6 +34,7 @@ namespace QueenMasterVisio.Core.Services
             int startIndex = documentFullName.IndexOf("EscapeRoomDoctor");
             if (startIndex == -1)
                 return;
+
 
             string relativePath = documentFullName.Substring(startIndex).Replace('/', '\\');
             string userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
@@ -67,6 +70,8 @@ namespace QueenMasterVisio.Core.Services
             {
                 VersionsFile = VersionsFilePath;
             }
+
+            isLocalFile = false;
 
         }
     }

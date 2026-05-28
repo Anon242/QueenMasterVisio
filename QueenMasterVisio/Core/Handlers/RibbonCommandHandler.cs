@@ -147,7 +147,22 @@ namespace QueenMasterVisio.Core.Handlers
 
                 // Сброс линий 
                 case "btnResetLine":
-                    CableService.ResetLines(page);
+                    //CableService.ResetLines(page);
+                    if (page.IsPlanPage())
+                        break;
+                    System.Windows.Window myWindow = new System.Windows.Window
+                    {
+                        Title = "Binding",
+                        Content = new Binding.BindingForm(page),
+                        MinWidth = 800,
+                        MinHeight = 450,
+                        Width = 800,
+                        Height = 450,
+                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                        Topmost = true
+                    };
+                    myWindow.Show();
+
                     break;
                 case "btnCreatePlan":
                     PageManager.CreateNewPlan(page);

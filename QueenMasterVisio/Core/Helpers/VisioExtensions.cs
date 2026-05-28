@@ -31,6 +31,19 @@ namespace QueenMasterVisio.Core.Helpers
                 : string.Empty;
         }
 
+        /// <summary>Получить значение pageCode если есть</summary>
+        public static string GetUserPageCode(this Page page)
+        {
+            if (page.HasCell("User.pageCode"))
+            {
+                return page.GetCellFormulaU("User.pageCode");
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
         /*
         public static string GetCellResultU(this Page page, string cellName)
         {
@@ -61,14 +74,13 @@ namespace QueenMasterVisio.Core.Helpers
         public static void SetUserCell(this Page page, string cellName, string value)
         {
             const short section = (short)VisSectionIndices.visSectionUser;
-            if (!page.HasCell(cellName))
+            if (!page.HasCell("User."+cellName))
             {
                 short row = (short)page.PageSheet.AddNamedRow(section, cellName, (short)VisRowTags.visTagDefault);
+                page.PageSheet.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = "";
             }
             page.PageSheet.CellsU[$"User.{cellName}"].FormulaU = $"\"{value}\"";
         }
-
-        
 
         /// <summary>Установить Prop-ячейку (создаёт автоматически, если нет)</summary>
         public static void SetPropCell(this Page page, string cellName, string value, string label)
