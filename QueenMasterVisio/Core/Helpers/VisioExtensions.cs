@@ -141,8 +141,6 @@ namespace QueenMasterVisio.Core.Helpers
         public static bool IsAutoTracePage(this Page page) => page.GetCellFormulaU("User.pageCode") == "planAuto";
         public static bool IsBackgroundPage(this Page page) => page.Background != 0;
 
-        /// <summary>Получить код страницы (аналог твоего getPageCode)</summary>
-        public static string GetPageCode(this Page page) => page.GetCellFormulaU("User.pageCode");
         public static string GetPlanCode(this Page page) => page._GetPlanCode();
 
 

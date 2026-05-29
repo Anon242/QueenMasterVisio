@@ -161,11 +161,11 @@ namespace QueenMasterVisio
 
         private void OnDocumentOpened(Document doc)
         {
+            if (!doc.Name.Contains(".vsdx"))
+                return;
+
             SafeExecute(() =>
             {
-                if (doc.Name.Contains(".vss"))
-                    return;
-             
 
                 System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
                 timer.Interval = 6000;

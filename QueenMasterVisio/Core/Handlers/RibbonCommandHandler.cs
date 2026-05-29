@@ -245,29 +245,23 @@ namespace QueenMasterVisio.Core.Handlers
                                 "Ошибка",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Warning);
-                        return;
+                        break;
                     }
-                    short pageIndex = (short)(page.Document.Pages.Count - 1);
 
-                    Page newPage = DocumentManager.CreateNewPage(QueenMasterVisio.RenameDialog.ShowRenameDialog("G" + pageIndex));
-                    
-                    if (newPage.Name[0] == 'G')
-                    {
-                        // Делаем что она была перед первым светом
-                        foreach (Page _page in page.Document.Pages)
-                        {
-                            Regex regexLight = new Regex(@"^L\d");
-                            if (regexLight.IsMatch(_page.Name))
-                            {
-                                newPage.Index = _page.Index;
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        newPage.Index = (short)(pageIndex);
-                    }
+                    System.Windows.Window myWindow1 = new System.Windows.Window();
+
+                    myWindow1.Title = "Binding";
+                    myWindow1.Content = new Binding.BindingFormCreator(page, myWindow1);
+                    myWindow1.MinWidth = 800;
+                    myWindow1.MinHeight = 450;
+                    myWindow1.Width = 800;
+                    myWindow1.Height = 450;
+                    myWindow1.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                    myWindow1.Topmost = true;
+
+                    myWindow1.Show();
+
+
                     break;
             }
         }

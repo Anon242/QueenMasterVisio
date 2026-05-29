@@ -11,6 +11,8 @@ using QueenMasterVisio.Core.Helpers;
 using QueenMasterVisio.Core.Models;
 using System.Diagnostics;
 using QueenMasterVisio.DeviceControl.Service;
+using System.Runtime.ConstrainedExecution;
+using System.Windows.Documents;
 
 namespace QueenMasterVisio.DeviceControl.Rules
 {
@@ -20,6 +22,36 @@ namespace QueenMasterVisio.DeviceControl.Rules
 
         public IEnumerable<ValidationResult> Validate(Page page, ValidationEngine engine)
         {
+
+            // Требуется список девайсов, если нет отклоняем
+            string userPageCode = page.GetUserPageCode();
+            if(userPageCode != "Device" && userPageCode != "Light")
+            {
+                yield return new ValidationResult
+                {
+                    RuleName = Name,
+                    TargetPage = page,
+                    TargetShape = null,
+                    Severity = ResultSeverity.Error,
+                    Message = Name +": Страница не является девайсом, возможно она не привязана к объекту плана",
+                };
+                yield break;
+            }
+            string [] deviceList = page.GetCellFormulaU("User.deviceList").Split(';');
+            if (deviceList.Length <= 0)
+            {
+                yield return new ValidationResult
+                {
+                    RuleName = Name,
+                    TargetPage = page,
+                    TargetShape = null,
+                    Severity = ResultSeverity.Error,
+                    Message = Name + ": Отсутсвует привязка к объекту, привяжите страницу к объекту плана",
+                };
+                yield break;
+            }
+
+
             List<Shape> cables = _GetCables(engine);
             // Теперь получим откуда это устройство
 
@@ -47,6 +79,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
                                 Severity = ResultSeverity.Warning,
                                 Message = "Кабель на странице: " + cableVersion + " последняя версия кабеля: " + ver.Item2,
                             };
+                            yield break;
                         }
                     }
                     else if(!_cable.Name.Contains("Cable.440"))
@@ -59,6 +92,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
                             Severity = ResultSeverity.Warning,
                             Message = "Образец кабеля старой версии, необходимо его заменить",
                         };
+                        yield break;
                     }
 
                 }

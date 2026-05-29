@@ -209,6 +209,9 @@
     can be found.
   -->
   <ItemGroup>
+    <Compile Include="Binding\BindingFormCreator.xaml.cs">
+      <DependentUpon>BindingFormCreator.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Binding\BindingForm.xaml.cs">
       <DependentUpon>BindingForm.xaml</DependentUpon>
     </Compile>
@@ -310,6 +313,10 @@
     <EmbeddedResource Include="Ribbon\MainLentXml.xml" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Binding\BindingFormCreator.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Binding\BindingForm.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
