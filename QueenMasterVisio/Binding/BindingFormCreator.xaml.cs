@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Page = Microsoft.Office.Interop.Visio.Page;
 using Shape = Microsoft.Office.Interop.Visio.Shape;
 
@@ -165,6 +167,21 @@ namespace QueenMasterVisio.Binding
                 }
 
                 Page newPage = DocumentManager.CreateNewPage(string.Join(", ", allDevices) + " " + PageNameTextBox.Text);
+
+                if (newPage.Name[0] == 'G')
+                {
+                    // Делаем что она была перед первым светом
+                    foreach (Page _page in doc.Pages)
+                    {
+                        Regex regexLight = new Regex(@"^L\d");
+                        if (regexLight.IsMatch(_page.Name))
+                        {
+                            newPage.Index = _page.Index;
+                            break;
+                        }
+                    }
+                }
+
                 if (!newPage.HasCell("User.pageCode"))
                     newPage.SetUserCell("pageCode", "");
                 if (!newPage.HasCell("User.deviceList"))
@@ -179,57 +196,53 @@ namespace QueenMasterVisio.Binding
 
                 foreach (string item in allObjects)
                 {
-                    foreach (Page page in doc.Pages)
+                    try
                     {
-                        if (!page.IsPlanPage()) continue;
+                        // А еще надо проверить на существование линков
+                        string pageName = GetPageNameForShape(item);
                         
-                            try
-                            {
-                            // А еще надо проверить на существование линков
-                                Shape shape = page.Shapes.ItemU[item];
-                                if (shape != null)
-                                {
-                                    Microsoft.Office.Interop.Visio.Hyperlink hlink = shape.Hyperlinks.Add();
-                                    hlink.SubAddress = newPage.NameU;
-                                break; 
-                                }
-                    
-                            }
-                            catch 
-                            {
-                                
-                            }
-                            
-                        
+                        Shape shape = doc.Pages[pageName].Shapes.ItemU[item];
+                        if (shape != null)
+                        {
+                            //Microsoft.Office.Interop.Visio.Hyperlink hlink = shape.Hyperlinks.Add();
+                            //hlink.SubAddress = newPage.NameU;
+                            Microsoft.Office.Interop.Visio.Hyperlink hyperlink = shape.AddHyperlink();
+                            hyperlink.SubAddress = newPage.NameU; 
+                            hyperlink.Description = newPage.Name;
+                        }
+                    }
+                    catch
+                    {
+
                     }
                 }
 
                 // Делаем так чтобы девайс встал нормально
 
-                /*
+                
                   
-                if (newPage.Name[0] == 'G')
-                    {
-                        // Делаем что она была перед первым светом
-                        foreach (Page _page in page.Document.Pages)
-                        {
-                            Regex regexLight = new Regex(@"^L\d");
-                            if (regexLight.IsMatch(_page.Name))
-                            {
-                                newPage.Index = _page.Index;
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        newPage.Index = (short)(pageIndex);
-                    } 
+               
 
-                 */
+                 
 
                 window.Close();
             }
+        }
+        private string GetPageNameForShape(string shapeName)
+        {
+            foreach (TreeViewItem root in LeftTreeView.Items)
+            {
+                foreach (object child in root.Items)
+                {
+                    string childText = child.ToString(); 
+                                                         
+                    if (childText.Contains(shapeName))
+                    {
+                        return root.Header.ToString(); 
+                    }
+                }
+            }
+            return null;
         }
 
         private void PageNameTextBox_KeyUp(object sender, KeyEventArgs e)

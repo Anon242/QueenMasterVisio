@@ -136,54 +136,6 @@ Ax;Shield;A15.3;G15.3;ШВВП;3 x 1.5mm2;;230v;Ok
             return result;
         }
 
-        private void SetHyperLinks(Page page)
-        {
-
-            // id and array 
-            List<KeyValuePair<Page, string[]>> pagesPair = new List<KeyValuePair<Page, string[]>>();
-            foreach (Page _page in page.Application.ActiveDocument.Pages)
-            {
-                // Если активная страница - пропускаем
-                if (_page?.Name == page.Name) continue;
-
-                // ЧЕК ПО УСТРОЙСТВАМ
-                Regex regex = new Regex(@"^G\d");
-                if (!regex.IsMatch(_page.Name)) continue;
-                //string gCode = page.Name.Split(' ').First();
-                // Номера 
-                pagesPair.Add(new KeyValuePair<Page, string[]>(_page, Tools.ExtractGValues(_page.Name)));
-                Debug.WriteLine(string.Join(",", Tools.ExtractGValues(_page.Name)));
-
-            }
-            Debug.WriteLine("Получили");
-
-            // Теперь пройдемся по девайсам 
-            foreach (Shape shape in page.Shapes)
-            {
-                if (!shape.Name.Contains("Device")) continue;
-
-                // Если существует 
-                if (shape.CellExists["Prop.Number", (short)VisExistsFlags.visExistsAnywhere] != 0)
-                {
-                    string nameValue = shape.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
-                    Debug.WriteLine("девайс " + nameValue);
-
-                    // Если есть совпадение в pagesPair values
-                    foreach (KeyValuePair<Page, string[]> keyvalue in pagesPair)
-                    {
-                        if (keyvalue.Value.Contains("G" + nameValue))
-                        {
-                            shape.AddHyperlink().SubAddress = keyvalue.Key.NameU;
-                            Debug.WriteLine(shape.Name + ": '" + keyvalue.Key.Name + "'");
-                            break;
-                        }
-                    }
-
-
-                }
-            }
-        }
-
         public static void ResetLines(Page page)
         {
             if (page.IsPlanPage())

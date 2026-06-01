@@ -42,8 +42,8 @@
 					<control idMso="LinePatternGallery" size="normal"/>
 				</group>
 				
-				<group id="MyGroup6466" label="Рефакторинг">
-					<button id="btnResetLine" label="Сбросить линии" size="large" onAction="OnButtonClickDevice" imageMso="CustomizeMySite"/>
+				<group id="MyGroup6466" label="Настройки">
+					<button id="btnResetLine" label="Настройка связей" size="large" onAction="OnButtonClickDevice" imageMso="CustomizeMySite"/>
 				</group> 
 				
 			</tab>

@@ -2,7 +2,10 @@
 using QueenMasterVisio.Core.Helpers;
 using System;
 using System.Linq;
+using System.Windows.Shapes;
 using Visio = Microsoft.Office.Interop.Visio;
+using Shape = Microsoft.Office.Interop.Visio.Shape;
+using System.Diagnostics;
 
 namespace QueenMasterVisio.Core.Managers
 {
@@ -66,10 +69,44 @@ namespace QueenMasterVisio.Core.Managers
             shape.CellsU["ConLineRouteExt"].FormulaU = "0";
             shape.CellsU["ConLineRouteExt"].FormulaU = "1";
 
+           
 
             Visio.Shape nearestLine = FindNearestLine(shape);
             if (nearestLine != null)
                 MergeLineGeometry(nearestLine, shape);
+
+            // Добавляем новое свойство "CableType" в фигуру
+            short row = shape.AddNamedRow(
+                (short)Visio.VisSectionIndices.visSectionProp,
+                "CableType",
+                (short)Visio.VisRowTags.visTagDefault
+            );
+
+
+            string format = ";3x1.5;3x2.5;4x1.5;4x2.5;UTP;FTP";
+            shape.CellsSRC[
+                (short)Visio.VisSectionIndices.visSectionProp,
+                row,
+                (short)Visio.VisCellIndices.visCustPropsFormat
+            ].FormulaU = "\"" + format + "\"";
+            shape.CellsSRC[
+                (short)Visio.VisSectionIndices.visSectionProp,
+                row,
+                (short)Visio.VisCellIndices.visCustPropsType
+            ].FormulaU = "4";
+
+            shape.CellsSRC[
+                (short)Visio.VisSectionIndices.visSectionProp,
+                row,
+                (short)Visio.VisCellIndices.visCustPropsLabel
+            ].FormulaU = "\"Cable Type\"";
+
+
+            shape.CellsSRC[
+                (short)Visio.VisSectionIndices.visSectionProp,
+                row,
+                (short)Visio.VisCellIndices.visCustPropsValue
+            ].FormulaU = "";
 
         }
 
@@ -166,45 +203,44 @@ namespace QueenMasterVisio.Core.Managers
                     short id = (short)lineShape.ID;
                     string nameValue = connectedShape.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
 
-                    //try
-                    //{
+                    string lineID = lineShape.ID.ToString();
+
                     Visio.Master master = lineShape.Document.Masters["QueenCallout"];
                     Visio.Shape shape = lineShape.Document.Application.ActivePage.Drop(master, (double)lineShape.CellsU["EndX"].ResultIU, (double)lineShape.CellsU["EndY"].ResultIU);
 
-                    shape.Text = activePlanCode[0] + nameValue;
+                    shape.Text = $"={activePlanCode[0]}{nameValue} & \n Sheet.{lineID}!Prop.CableType";
                     // Если распределительная коробка 
                     if (connectedShape.Name.Contains("Box"))
                         shape.Text = activePlanCode[0] + "J" + nameValue;
 
+                    try
+                    {
+                        
 
-                    string nameLineId = "Sheet." + lineShape.ID;
+                        shape.SetUserCell("NearestParam", "");
+                        shape.SetUserCell("NearestPNT", "");
+                        shape.CellsU["User.X"].FormulaU = "=IF(Controls.End>PNTX(User.NearestPNT),1,-1)";
+                        shape.CellsU["User.NearestParam"].FormulaU = $"=0.04+NEARESTPOINTONPATH(Sheet.{lineID}!Geometry1.Path,PNTX(LOCTOLOC(PNT(Controls.End,Controls.End.Y),Width,Sheet.{lineID}!Width)),PNTY(LOCTOLOC(PNT(Controls.End,Controls.End.Y),Width,Sheet.{lineID}!Width)))";
+                        shape.CellsU["User.NearestPNT"].FormulaU = $"=LOCTOPAR(PNT(PNTX(POINTALONGPATH(Sheet.{lineID}!Geometry1.Path,User.NearestParam)) - PinX,PNTY(POINTALONGPATH(Sheet.{lineID}!Geometry1.Path,User.NearestParam))- PinY),Sheet.{lineID}!Width,ThePage!PageWidth)";
+                        Debug.WriteLine($"LockCalcWH: {shape.CellsU["LockCalcWH"].ResultIU}");
 
-                    /*
-                        // Назначаем формулы
-                        row = shape.AddNamedRow((short)VisSectionIndices.visSectionUser, "BeginX", (short)VisRowTags.visTagDefault);
-                        shape.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = $"{nameLineId}!BeginX";
-                        row = shape.AddNamedRow((short)VisSectionIndices.visSectionUser, "BeginY", (short)VisRowTags.visTagDefault);
-                        shape.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = $"{nameLineId}!BeginY";
+                        
+                        short section = (short)Visio.VisSectionIndices.visSectionFirstComponent; // Geometry1
+                        short row = 1; // первая строка (MoveTo)
 
-                        row = shape.AddNamedRow((short)VisSectionIndices.visSectionUser, "EndX", (short)VisRowTags.visTagDefault);
-                        shape.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = $"{nameLineId}!EndX";
-                        row = shape.AddNamedRow((short)VisSectionIndices.visSectionUser, "EndY", (short)VisRowTags.visTagDefault);
-                        shape.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = $"{nameLineId}!EndY";
+                        shape.CellsSRC[section, row, (short)Visio.VisCellIndices.visX].FormulaU = "=GUARD(User.NearestPNT)";
+                        shape.CellsSRC[section, row, (short)Visio.VisCellIndices.visY].FormulaU = "=GUARD(User.NearestPNT)";
 
-                        row = shape.AddNamedRow((short)VisSectionIndices.visSectionUser, "LineDX", (short)VisRowTags.visTagDefault);
-                        shape.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = $"User.EndX - User.BeginX";
-                        row = shape.AddNamedRow((short)VisSectionIndices.visSectionUser, "LineDY", (short)VisRowTags.visTagDefault);
-                        shape.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = $"User.EndY - User.BeginY";
+                        shape.CellsU["LockMoveX"].FormulaU = "1";
+                        shape.CellsU["LockMoveY"].FormulaU = "1";
 
-                        row = shape.AddNamedRow((short)VisSectionIndices.visSectionUser, "LineLengthSq", (short)VisRowTags.visTagDefault);
-                        shape.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = $"User.LineDX * User.LineDX + User.LineDY * User.LineDY";
+                        shape.CellsU["PinX"].FormulaU = $"=Sheet.{lineShape.ID}!PinX";
+                        shape.CellsU["PinY"].FormulaU = $"=Sheet.{lineShape.ID}!PinY";
+                    }
+                    catch
+                    {
 
-                        row = shape.AddNamedRow((short)VisSectionIndices.visSectionUser, "T", (short)VisRowTags.visTagDefault);
-                        shape.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = $"IF(User.LineLengthSq=0, 0, MIN(1, MAX(0, ((Controls.End.X - User.BeginX) * User.LineDX + (Controls.End.Y - User.BeginY) * User.LineDY) / User.LineLengthSq)))";
-
-                        shape.CellsU["PinX"].Formula = $"GUARD(User.BeginX + User.T * User.LineDX)";
-                        shape.CellsU["PinY"].Formula = $"GUARD(User.BeginY + User.T * User.LineDY)";
-					*/
+                    }
 
                     var color = WireService.GetWireByName(activePlanCode).color;
                     if(color != null)

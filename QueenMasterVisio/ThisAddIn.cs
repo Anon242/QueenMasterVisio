@@ -69,7 +69,7 @@ namespace QueenMasterVisio
 
         private void OnPageChanged(Page Page)
         {
-            SafeExecute(() => pageExplorer?.UpdateExplorer(), "OnPageChanged");
+           // SafeExecute(() => pageExplorer?.UpdateExplorer(), "OnPageChanged");
         }
 
         private void OnPageAdded(Page Page)

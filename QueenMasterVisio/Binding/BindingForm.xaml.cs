@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Page = Microsoft.Office.Interop.Visio.Page;
 using Shape = Microsoft.Office.Interop.Visio.Shape;
 
@@ -26,17 +27,21 @@ namespace QueenMasterVisio.Binding
     {
         private Document doc;
         private Page thisPage;
-
-        public BindingForm(Page page)
+        private System.Windows.Window window;
+        public BindingForm(Page page, System.Windows.Window window)
         {
             InitializeComponent();
             this.doc = page.Document;
             this.thisPage = page;
+            this.window = window;
             GetData();
         }
 
         private void RebuildPageUserCells()
         {
+            if (thisPage.NameU != doc.Application.ActivePage.NameU)
+                window.Close();
+
             if (RightListBox.Items.Count > 0) 
             {
                 string result = string.Join(";", RightListBox.Items.Cast<string>());
@@ -47,7 +52,52 @@ namespace QueenMasterVisio.Binding
                 else if (firstElem[0] == 'L')
                     thisPage.SetUserCell("pageCode", "Light");
 
+
+                List<string> allObjects = new List<string>();
+                foreach (string item in RightListBox.Items.Cast<string>())
+                {
+                    allObjects.Add(item.Split('-')[1].Trim());
+                }
+                foreach (string item in allObjects)
+                {
+                    try
+                    {
+                        // А еще надо проверить на существование линков
+                        string pageName = GetPageNameForShape(item);
+
+                        Shape shape = doc.Pages[pageName].Shapes.ItemU[item];
+                        if (shape != null)
+                        {
+                            Microsoft.Office.Interop.Visio.Hyperlink hyperlink = shape.AddHyperlink();
+                            hyperlink.SubAddress = thisPage.NameU;
+                            hyperlink.Description = thisPage.Name;
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+                }
+
             }
+
+        }
+
+        private string GetPageNameForShape(string shapeName)
+        {
+            foreach (TreeViewItem root in LeftTreeView.Items)
+            {
+                foreach (object child in root.Items)
+                {
+                    string childText = child.ToString();
+
+                    if (childText.Contains(shapeName))
+                    {
+                        return root.Header.ToString();
+                    }
+                }
+            }
+            return null;
         }
 
         private void AddToRight()
@@ -75,6 +125,9 @@ namespace QueenMasterVisio.Binding
                     RebuildPageUserCells();
                 }
             }
+
+
+
         }
 
 

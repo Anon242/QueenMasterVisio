@@ -197,6 +197,17 @@ namespace QueenMasterVisio.Core.Helpers
             => shape.Name.Contains("Device") || shape.Name.Contains("Shield") ||
                shape.Name.Contains("Light") || shape.Name.Contains("Camera");
 
+        public static void SetUserCell(this Shape shape, string cellName, string value)
+        {
+            const short section = (short)VisSectionIndices.visSectionUser;
+            if (!shape.HasCell("User." + cellName))
+            {
+                short row = (short)shape.AddNamedRow(section, cellName, (short)VisRowTags.visTagDefault);
+                shape.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = "";
+            }
+            shape.CellsU[$"User.{cellName}"].FormulaU = $"\"{value}\"";
+        }
+
         /// <summary>Установить формулу в любую ячейку (удобнее CellFormulaSet)</summary>
         public static void SetFormula(this Shape shape, string cellName, string formula)
         {

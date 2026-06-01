@@ -133,7 +133,7 @@ namespace QueenMasterVisio.Core.Handlers
             switch (buttonId)
             {
                 case "btnLock":
-                    if (page.IsPlanPage())
+                    if (page.IsPlanPage() || page.IsAutoTracePage())
                         return;
 
                     PageManager.LockOrUnlockLayer(page);
@@ -148,20 +148,20 @@ namespace QueenMasterVisio.Core.Handlers
                 // Сброс линий 
                 case "btnResetLine":
                     //CableService.ResetLines(page);
-                    if (page.IsPlanPage())
+                    if (page.IsPlanPage() || page.IsAutoTracePage())
                         break;
-                    System.Windows.Window myWindow = new System.Windows.Window
-                    {
-                        Title = "Binding",
-                        Content = new Binding.BindingForm(page),
-                        MinWidth = 800,
-                        MinHeight = 450,
-                        Width = 800,
-                        Height = 450,
-                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                        Topmost = true
-                    };
-                    myWindow.Show();
+
+                    System.Windows.Window myWindow1 = new System.Windows.Window();
+                    myWindow1.Title = "Binding";
+                    myWindow1.Content = new Binding.BindingForm(page, myWindow1);
+                    myWindow1.MinWidth = 800;
+                    myWindow1.MinHeight = 450;
+                    myWindow1.Width = 800;
+                    myWindow1.Height = 450;
+                    myWindow1.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                    myWindow1.Topmost = true;
+
+                    myWindow1.Show();
 
                     break;
                 case "btnCreatePlan":
@@ -239,7 +239,7 @@ namespace QueenMasterVisio.Core.Handlers
 
                     break;
                 case "btnCreateNewDevice":
-                    if (page.IsPlanPage())
+                    if (page.IsPlanPage() || page.IsAutoTracePage())
                     {
                         System.Windows.Forms.MessageBox.Show("По техническим причинам, создать новый девайс находясь на плане не возможно, перейдите на другую страницу с девайсом и попробуйте снова",
                                 "Ошибка",
@@ -248,18 +248,18 @@ namespace QueenMasterVisio.Core.Handlers
                         break;
                     }
 
-                    System.Windows.Window myWindow1 = new System.Windows.Window();
+                    System.Windows.Window myWindow2 = new System.Windows.Window();
 
-                    myWindow1.Title = "Binding";
-                    myWindow1.Content = new Binding.BindingFormCreator(page, myWindow1);
-                    myWindow1.MinWidth = 800;
-                    myWindow1.MinHeight = 450;
-                    myWindow1.Width = 800;
-                    myWindow1.Height = 450;
-                    myWindow1.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-                    myWindow1.Topmost = true;
-
-                    myWindow1.Show();
+                    myWindow2.Title = "Binding";
+                    myWindow2.Content = new Binding.BindingFormCreator(page, myWindow2);
+                    myWindow2.MinWidth = 800;
+                    myWindow2.MinHeight = 450;
+                    myWindow2.Width = 800;
+                    myWindow2.Height = 450;
+                    myWindow2.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                    myWindow2.Topmost = true;
+                            
+                    myWindow2.Show();
 
 
                     break;
