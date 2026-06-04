@@ -19,7 +19,7 @@ namespace QueenMasterVisio.Core.Services
         public string FileNameWithoutEx { get; }
         public string MetafilesDir { get; }
         public string ChangeLogsDir { get; }
-        public string VersionsFile { get; }
+        public string QueenFigures { get; }
 
         public bool isLocalFile = true;
 
@@ -65,10 +65,10 @@ namespace QueenMasterVisio.Core.Services
             if (Directory.Exists(changeLogsDir))
                 ChangeLogsDir = changeLogsDir;
 
-            string VersionsFilePath = System.IO.Path.Combine(userProfile, "OneDrive", "EscapeRoomDoctor\\Project\\!ШАБЛОН\\Фигуры\\versions.txt");
-            if (File.Exists(VersionsFilePath))
+            string QueenFiguresFilePath = System.IO.Path.Combine(userProfile, "OneDrive", "EscapeRoomDoctor\\Project\\!ШАБЛОН\\Фигуры\\Queen Figures.vssx");
+            if (File.Exists(QueenFiguresFilePath))
             {
-                VersionsFile = VersionsFilePath;
+                QueenFigures = QueenFiguresFilePath;
             }
 
             isLocalFile = false;

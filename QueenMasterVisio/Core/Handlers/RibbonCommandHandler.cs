@@ -1,5 +1,7 @@
 ﻿using Microsoft.Office.Core;
-using Microsoft.Office.Interop.Visio;
+using Visio = Microsoft.Office.Interop.Visio;
+using Page = Microsoft.Office.Interop.Visio.Page;
+using Section = Microsoft.Office.Interop.Visio.Section;
 using QueenMasterVisio.Core.Helpers;
 using QueenMasterVisio.Core.Managers;
 using QueenMasterVisio.Core.Services;
@@ -13,6 +15,10 @@ using static System.Net.Mime.MediaTypeNames;
 using QueenMasterVisio.DeviceControl;
 using System.Windows;
 using System.Collections.Generic;
+using Microsoft.Office.Tools;
+using Microsoft.Office.Interop.Visio;
+using System.Windows.Shapes;
+using Shape = Microsoft.Office.Interop.Visio.Shape;
 
 namespace QueenMasterVisio.Core.Handlers
 {
@@ -262,6 +268,49 @@ namespace QueenMasterVisio.Core.Handlers
                     myWindow2.Show();
 
 
+                    break;
+                case "btnGetLines":
+                    if (!(page.GetUserPageCode() == "Device" || page.GetUserPageCode() == "Light"))
+                    {
+                        System.Windows.Forms.MessageBox.Show("Страница не является девайсом или светом", "Ошибка", MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                        break;
+                    }
+                    string deviceList = page.GetCellFormulaU("User.deviceList");
+                    if (string.IsNullOrEmpty(deviceList))
+                    {
+                        System.Windows.Forms.MessageBox.Show("Страница не привязана", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        break;
+                    }
+                    
+                    // Надо только один раз открыть!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        Microsoft.Office.Interop.Visio.Document sourceStencil = Globals.ThisAddIn.Application.Documents.OpenEx(ThisAddIn.links.QueenFigures,
+        (short)(Microsoft.Office.Interop.Visio.VisOpenSaveArgs.visOpenHidden | Microsoft.Office.Interop.Visio.VisOpenSaveArgs.visOpenDontList));
+                  
+                    Microsoft.Office.Interop.Visio.Master masterCable = sourceStencil.Masters.get_ItemU("Cable");
+                    Microsoft.Office.Interop.Visio.Master masterABCD = sourceStencil.Masters.get_ItemU("ABCD");
+
+                    List<Shape> shapes = new List<Shape>();
+
+                    // Получить с странциы все девайсо страницы
+                    // Пройтись по каждому, получить их да да нет нет px ax и тд
+
+                    foreach (string item in deviceList.Split(';'))
+                    {
+                        string[] deviceSplit = item.Split('-');
+                        string num = deviceSplit[0].Trim();
+                        string deviceNameU = deviceSplit[1].Trim();
+                        string pageId = deviceSplit[2].Trim();
+
+                        shapes.Add(page.Document.Pages.ItemFromID[int.Parse(pageId)].Shapes[deviceNameU]);
+                    }
+                   
+                    foreach (Shape shape in shapes)
+                    {
+                        Debug.WriteLine(shape.GetCellResultString("Prop.Px"));
+                    }
+
+                    
+                    
                     break;
             }
         }

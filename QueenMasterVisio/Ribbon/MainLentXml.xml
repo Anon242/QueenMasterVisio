@@ -17,9 +17,6 @@
 					<button id="btnCopyAll" label="Скопировать страницу" size="large" onAction="OnButtonClickDevice" imageMso="Copy"/>
 					<button id="btnPasteAll" label="Вставить все на страницу" size="large" onAction="OnButtonClickDevice" imageMso="Paste"/>
 				</group>
-				<group id="MyGroup63" label="Настройки">
-
-				</group>
 				<group id="MyGroup64" label="Информация">
 					<button id="btnLookLogs" label="Показать логи" size="large" onAction="OnButtonClickDevice" imageMso="CustomizeMySite"/>
 					<button id="btnLookDevicesOnPlan" label="Проверить страницу" size="large" onAction="OnButtonClickDevice" imageMso="CustomizeMySite"/>
@@ -44,6 +41,7 @@
 				
 				<group id="MyGroup6466" label="Настройки">
 					<button id="btnResetLine" label="Настройка связей" size="large" onAction="OnButtonClickDevice" imageMso="CustomizeMySite"/>
+					<button id="btnGetLines" label="Менеджер проводов" size="large" onAction="OnButtonClickDevice" imageMso="OrganizationChartSelectAllConnectors"/>
 				</group> 
 				
 			</tab>

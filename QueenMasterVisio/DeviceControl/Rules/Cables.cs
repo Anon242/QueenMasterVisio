@@ -59,7 +59,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
             {
                 Cable cable = new Cable(_cable);
 
-
+                /*
                 // Чекаем версию если версии загружены
                 VersionsList versions = new VersionsList(ThisAddIn.links.VersionsFile);
 
@@ -96,7 +96,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
                     }
 
                 }
-
+                */
                 if (!string.IsNullOrEmpty(cable.deviceName) && !string.IsNullOrEmpty(cable.type))
                 {
 

@@ -18,7 +18,7 @@ namespace QueenMasterVisio
 {
     public partial class ThisAddIn
     {
-
+        public string docName;
         public VisioEventAggregator myPage;
         MainLentXml myRibbonTracer;
 
@@ -163,6 +163,8 @@ namespace QueenMasterVisio
         {
             if (!doc.Name.Contains(".vsdx"))
                 return;
+
+            docName = doc.FullName;
 
             SafeExecute(() =>
             {

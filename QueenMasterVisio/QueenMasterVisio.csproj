@@ -31,14 +31,14 @@
     <ResolveComReferenceSilent>true</ResolveComReferenceSilent>
     <IsWebBootstrapper>False</IsWebBootstrapper>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <PublishUrl>QueenMasterVisio\</PublishUrl>
+    <PublishUrl>C:\Users\USER\OneDrive\EscapeRoomDoctor\Project\!ШАБЛОН\QueenMasterVisio\</PublishUrl>
     <InstallUrl />
     <TargetCulture>ru</TargetCulture>
-    <ApplicationVersion>1.0.0.34</ApplicationVersion>
+    <ApplicationVersion>1.0.0.37</ApplicationVersion>
     <AutoIncrementApplicationRevision>true</AutoIncrementApplicationRevision>
     <UpdateEnabled>true</UpdateEnabled>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>hours</UpdateIntervalUnits>
+    <UpdateInterval>0</UpdateInterval>
+    <UpdateIntervalUnits>days</UpdateIntervalUnits>
     <ProductName>QueenMasterVisio</ProductName>
     <PublisherName />
     <SupportUrl />

@@ -199,7 +199,7 @@ namespace QueenMasterVisio.Binding
                 else
                     deviceName = "L" + number;
 
-                newChild.Items.Add(deviceName + " - " + shape.NameU);
+                newChild.Items.Add(deviceName + " - " + shape.NameU + " - " + shape.ContainingPageID);
             }
             LeftTreeView.Items.Add(newChild);
         }
