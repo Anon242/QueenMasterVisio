@@ -226,8 +226,7 @@ namespace QueenMasterVisio.Core.Managers
                     if (connectedShape.Name.Contains("Box"))
                         shape.Text = activePlanCode[0] + "J" + nameValue;
 
-                    try
-                    {
+                   
                         
 
                         shape.SetUserCell("NearestParam", "");
@@ -236,23 +235,22 @@ namespace QueenMasterVisio.Core.Managers
                         shape.CellsU["User.NearestParam"].FormulaU = $"=0.04+NEARESTPOINTONPATH(Sheet.{lineID}!Geometry1.Path,PNTX(LOCTOLOC(PNT(Controls.End,Controls.End.Y),Width,Sheet.{lineID}!Width)),PNTY(LOCTOLOC(PNT(Controls.End,Controls.End.Y),Width,Sheet.{lineID}!Width)))";
                         shape.CellsU["User.NearestPNT"].FormulaU = $"=LOCTOPAR(PNT(PNTX(POINTALONGPATH(Sheet.{lineID}!Geometry1.Path,User.NearestParam)) - PinX,PNTY(POINTALONGPATH(Sheet.{lineID}!Geometry1.Path,User.NearestParam))- PinY),Sheet.{lineID}!Width,ThePage!PageWidth)";
 
-
+                    try
+                    {
                         short section = (short)Visio.VisSectionIndices.visSectionFirstComponent; // Geometry1
                         short row = 1; // первая строка (MoveTo)
 
                         shape.CellsSRC[section, row, (short)Visio.VisCellIndices.visX].FormulaU = "=GUARD(User.NearestPNT)";
                         shape.CellsSRC[section, row, (short)Visio.VisCellIndices.visY].FormulaU = "=GUARD(User.NearestPNT)";
-
-                        shape.CellsU["LockMoveX"].FormulaU = "1";
-                        shape.CellsU["LockMoveY"].FormulaU = "1";
-
-                        shape.CellsU["PinX"].FormulaU = $"GUARD(Sheet.{lineID}!EndX)";
-                        shape.CellsU["PinY"].FormulaU = $"GUARD(Sheet.{lineID}!EndY)";
                     }
                     catch
                     {
 
                     }
+
+                    shape.CellsU["PinX"].FormulaU = $"GUARD(Sheet.{lineID}!EndX)";
+                        shape.CellsU["PinY"].FormulaU = $"GUARD(Sheet.{lineID}!EndY)";
+                   
 
                     var color = WireService.GetWireByName(activePlanCode).color;
                     if(color != null)
