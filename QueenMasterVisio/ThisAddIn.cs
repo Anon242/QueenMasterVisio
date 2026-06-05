@@ -18,9 +18,12 @@ namespace QueenMasterVisio
 {
     public partial class ThisAddIn
     {
+        public static LocalLinks links;
+
+        public Microsoft.Office.Interop.Visio.Document sourceStencil;
         public string docName;
         public VisioEventAggregator myPage;
-        MainLentXml myRibbonTracer;
+        public MainLentXml myRibbonTracer;
 
         private Explorer pageExplorer;
         private ChangeLog.ChangeLog changeLog;
@@ -28,7 +31,6 @@ namespace QueenMasterVisio
         private Visio.Window customWindow;
         private Visio.Window customWindowChangeLog;
 
-        public static LocalLinks links;
 
         [DllImport("user32.dll")]
         private static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
@@ -190,6 +192,16 @@ namespace QueenMasterVisio
                         pageExplorer.UpdateExplorer();
 
                         links = new LocalLinks(doc.FullName);
+
+                        try
+                        {
+                            sourceStencil = Globals.ThisAddIn.Application.Documents.OpenEx(ThisAddIn.links.QueenFigures,
+(short)(Microsoft.Office.Interop.Visio.VisOpenSaveArgs.visOpenHidden | Microsoft.Office.Interop.Visio.VisOpenSaveArgs.visOpenDontList));
+                        }
+                        catch
+                        {
+                        }
+
 
                         if (links.isLocalFile)
                         {

@@ -283,11 +283,10 @@ namespace QueenMasterVisio.Core.Handlers
                     }
                     
                     // Надо только один раз открыть!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        Microsoft.Office.Interop.Visio.Document sourceStencil = Globals.ThisAddIn.Application.Documents.OpenEx(ThisAddIn.links.QueenFigures,
-        (short)(Microsoft.Office.Interop.Visio.VisOpenSaveArgs.visOpenHidden | Microsoft.Office.Interop.Visio.VisOpenSaveArgs.visOpenDontList));
+
                   
-                    Microsoft.Office.Interop.Visio.Master masterCable = sourceStencil.Masters.get_ItemU("Cable");
-                    Microsoft.Office.Interop.Visio.Master masterABCD = sourceStencil.Masters.get_ItemU("ABCD");
+                    Microsoft.Office.Interop.Visio.Master masterCable = Globals.ThisAddIn.sourceStencil.Masters.get_ItemU("Cable");
+                    Microsoft.Office.Interop.Visio.Master masterABCD = Globals.ThisAddIn.sourceStencil.Masters.get_ItemU("ABCD");
 
                     List<Shape> shapes = new List<Shape>();
 
@@ -303,10 +302,61 @@ namespace QueenMasterVisio.Core.Handlers
 
                         shapes.Add(page.Document.Pages.ItemFromID[int.Parse(pageId)].Shapes[deviceNameU]);
                     }
+
+                    var exLines = new List<string>();
+
+                    foreach (Shape shape in page.Shapes)
+                    {
+                        if (shape.Name.Contains("Cable"))
+                        {
+                            if (shape.HasCell("User.BindingLine"))
+                            {
+                                exLines.Add(shape.GetCellFormulaU("User.BindingLine"));
+                            }
+                            if(shape.GetCellFormulaU("User.BindingLine") == "NIL")
+                            {
+                                System.Windows.Forms.MessageBox.Show("Обнаружен удаленный кабель, удалите его вручную", "Удаленный кабель", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            }
+                        }
+                    }
                    
                     foreach (Shape shape in shapes)
                     {
-                        Debug.WriteLine(shape.GetCellResultString("Prop.Px"));
+                        float x = 0f;
+                        float y = -0.6f;
+                        var lines = new List<Visio.Shape>();
+
+                        foreach (Visio.Connect conn in shape.FromConnects)
+                        {
+                            Visio.Shape line = null;
+                            if (conn.FromSheet.OneD != 0) line = conn.FromSheet;
+                            else if (conn.ToSheet.OneD != 0) line = conn.ToSheet;
+
+                            if (exLines.Contains(line.NameU))
+                                continue;
+
+                            if (line != null && !lines.Contains(line))
+                            {
+                                Shape newCable = page.Drop(masterCable, x, y);
+                                x += 0.3f;
+
+                                newCable.SetUserCell("BindingLine",line.NameU);
+
+
+                                newCable.SetFormula("Prop.Name", $"=IFERROR(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.Way, \"NIL\")",true);
+                                newCable.SetFormula("Prop.Device", $"=IFERROR(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.To,\"NIL\")",true);
+                                newCable.SetFormula("Prop.type", $"=IFERROR(SUBSTITUTE(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.OverCable,\" Cat 5E\",\"\",1),\"NIL\")",true);
+                                //newCable.SetFormula("Prop.type", $"=Pages[{shape.ContainingPageID}]!Sheet.{line.ID}!User.Way");
+
+                                newCable.SetFormula("Prop.Name.Invisible", "1");
+                                newCable.SetFormula("Prop.Device.Invisible", "1");
+                                newCable.SetFormula("Prop.type.Invisible", "1");
+
+                            }
+
+                        }
+
+                      
                     }
 
                     

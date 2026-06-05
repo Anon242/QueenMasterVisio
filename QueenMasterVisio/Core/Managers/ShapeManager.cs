@@ -68,9 +68,48 @@ namespace QueenMasterVisio.Core.Managers
             shape.CellsU["ConFixedCode"].FormulaU = "2";
             shape.CellsU["ConLineRouteExt"].FormulaU = "0";
             shape.CellsU["ConLineRouteExt"].FormulaU = "1";
-            
 
-           
+            Visio.Shape connectedShape = shape.Connects[2].ToSheet;
+            Visio.Shape connectedShapefrom = shape.Connects[1].ToSheet;
+            if (connectedShape.Name.Contains("Device") || connectedShape.Name.Contains("Light") || connectedShape.Name.Contains("Camera") || connectedShape.Name.Contains("Alarm") || connectedShape.Name.Contains("Sound") || connectedShape.Name.Contains("Box"))
+            {
+                string code = "";
+                if (connectedShape.Name.Contains("Device"))
+                    code = "G";
+                else if (connectedShape.Name.Contains("Light"))
+                    code = "L";
+                 else if (connectedShape.Name.Contains("Camera"))
+                    code = "V";
+                 else if (connectedShape.Name.Contains("Alarm"))
+                    code = "Y";
+                  else if (connectedShape.Name.Contains("Sound"))
+                    code = "A";
+                  else if (connectedShape.Name.Contains("Box"))
+                    code = "PJ";
+                string code1 = "";
+                if (connectedShapefrom.Name.Contains("Device"))
+                    code1 = "G";
+                else if (connectedShapefrom.Name.Contains("Light"))
+                    code1 = "L";
+                 else if (connectedShapefrom.Name.Contains("Camera"))
+                    code1 = "V";
+                 else if (connectedShapefrom.Name.Contains("Alarm"))
+                    code1 = "Y";
+                  else if (connectedShapefrom.Name.Contains("Sound"))
+                    code1 = "A";
+                  else if (connectedShapefrom.Name.Contains("Box"))
+                    code1 = "PJ";
+
+                if (connectedShape.CellExists["Prop.Number", (short)Visio.VisExistsFlags.visExistsAnywhere] != 0)
+                {
+                    string nameValue = connectedShape.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
+                    string nameValue2 = connectedShapefrom.CellsU["Prop.Number"].FormulaU.Replace("\"", "");
+                    shape.SetUserCell("To", $"{code}{nameValue}");
+                    shape.SetUserCell("Way", $"{activePlanCode[0]}{nameValue}");
+                    shape.SetUserCell("From", $"{code1}{nameValue2}");
+                    shape.SetUserCell("DefaultCable", WireService.GetWireByName(activePlanCode).defaultCable);
+                }
+            }  
 
             Visio.Shape nearestLine = FindNearestLine(shape);
             if (nearestLine != null)
@@ -84,7 +123,7 @@ namespace QueenMasterVisio.Core.Managers
             );
 
 
-            string format = ";3x1.5;3x2.5;4x1.5;4x2.5;UTP;FTP";
+            string format = ";3x1.5;3x2.5;4x1.5;4x2.5;UTP Cat 5E;FTP Cat 5E";
             shape.CellsSRC[
                 (short)Visio.VisSectionIndices.visSectionProp,
                 row,
@@ -109,9 +148,13 @@ namespace QueenMasterVisio.Core.Managers
                 (short)Visio.VisCellIndices.visCustPropsValue
             ].FormulaU = "=INDEX(0,Prop.CableType.Format)";
 
-            shape.CellsU["CompoundType"].FormulaU = "=NOT(STRSAME(Prop.CableType, \"\"))";
+
+            shape.SetUserCell("OverCable", $"=IF(STRSAME(Prop.CableType,\"\"),User.DefaultCable,Prop.CableType)");
+            shape.CellsU["CompoundType"].FormulaU = "=STRSAME(Prop.CableType,User.OverCable)";
             // Логика от и до (test)
             SetIdInLine(shape);
+
+           
         }
 
 
@@ -209,7 +252,8 @@ namespace QueenMasterVisio.Core.Managers
 
                     string lineID = lineShape.ID.ToString();
 
-                    Visio.Master master = lineShape.Document.Masters["QueenCallout"];
+                    
+                    Visio.Master master = Globals.ThisAddIn.sourceStencil.Masters.get_ItemU("Callout");
                     Visio.Shape shape = lineShape.Document.Application.ActivePage.Drop(master, (double)lineShape.CellsU["EndX"].ResultIU, (double)lineShape.CellsU["EndY"].ResultIU);
 
                     //shape.Text = $"={activePlanCode[0]}{nameValue} & \n Sheet.{lineID}!Prop.CableType";
@@ -218,7 +262,7 @@ namespace QueenMasterVisio.Core.Managers
 
                     Visio.Characters shapeChars = shape.Characters;
                     shapeChars.Text = "";
-                    string formula = $"=\"{activePlanCode[0]}{nameValue}\" & IF(STRSAME(Sheet.{lineID}!Prop.CableType, \"\"), \"\", CHAR(10) & Sheet.{lineID}!Prop.CableType)";
+                    string formula = $"=\"{activePlanCode[0]}{nameValue}\" & IF(NOT(STRSAME(Sheet.{lineID}!Prop.CableType, Sheet.{lineID}!User.OverCable)), \"\", CHAR(10) & Sheet.{lineID}!Prop.CableType)";
                     shapeChars.AddCustomFieldU(formula, 0);
 
 
@@ -249,7 +293,7 @@ namespace QueenMasterVisio.Core.Managers
                     }
 
                     shape.CellsU["PinX"].FormulaU = $"GUARD(Sheet.{lineID}!EndX)";
-                        shape.CellsU["PinY"].FormulaU = $"GUARD(Sheet.{lineID}!EndY)";
+                    shape.CellsU["PinY"].FormulaU = $"GUARD(Sheet.{lineID}!EndY)";
                    
 
                     var color = WireService.GetWireByName(activePlanCode).color;

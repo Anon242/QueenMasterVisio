@@ -205,13 +205,29 @@ namespace QueenMasterVisio.Core.Helpers
                 short row = (short)shape.AddNamedRow(section, cellName, (short)VisRowTags.visTagDefault);
                 shape.CellsSRC[(short)VisSectionIndices.visSectionUser, row, (short)VisCellIndices.visUserValue].FormulaU = "";
             }
-            shape.CellsU[$"User.{cellName}"].FormulaU = $"\"{value}\"";
+            if(value.Length == 0)
+                shape.CellsU[$"User.{cellName}"].FormulaU = $"\"{value}\"";
+            else if (value[0] == '=')
+                shape.CellsU[$"User.{cellName}"].FormulaU = $"{value}";
+            else
+                shape.CellsU[$"User.{cellName}"].FormulaU = $"\"{value}\"";
         }
 
         /// <summary>Установить формулу в любую ячейку (удобнее CellFormulaSet)</summary>
-        public static void SetFormula(this Shape shape, string cellName, string formula)
+        public static void SetFormula(this Shape shape, string cellName, string formula, bool isFormula = false)
         {
-            shape.CellsU[cellName].FormulaU = '"' + formula + '"';
+            if (shape.HasCell(cellName))
+            {
+                if (!isFormula)
+                    shape.CellsU[cellName].FormulaU = '"' + formula + '"';
+                else
+                    shape.CellsU[cellName].FormulaU = formula;
+            }
+            else
+            {
+                Debug.WriteLine("Ячейки " + cellName + " не существует");
+            }
+
         }
 
         /// <summary>Получить значение свойства (Prop.)</summary>
