@@ -319,11 +319,12 @@ namespace QueenMasterVisio.Core.Handlers
                             }
                         }
                     }
-                   
+                    float x = 0f;
+                    float y = -0.6f;
                     foreach (Shape shape in shapes)
                     {
-                        float x = 0f;
-                        float y = -0.6f;
+                        
+                        
                         var lines = new List<Visio.Shape>();
 
                         foreach (Visio.Connect conn in shape.FromConnects)
