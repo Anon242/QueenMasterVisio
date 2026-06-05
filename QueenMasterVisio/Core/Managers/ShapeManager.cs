@@ -6,6 +6,7 @@ using System.Windows.Shapes;
 using Visio = Microsoft.Office.Interop.Visio;
 using Shape = Microsoft.Office.Interop.Visio.Shape;
 using System.Diagnostics;
+using Microsoft.Office.Core;
 
 namespace QueenMasterVisio.Core.Managers
 {
@@ -40,8 +41,7 @@ namespace QueenMasterVisio.Core.Managers
                 Visio.Shape connectedShapeTo = shape.Connects[2].ToSheet;
             }
 
-            // Логика от и до (test)
-            SetIdInLine(shape);
+            
 
             shape.CellsU["Rounding"].FormulaU = "2 mm";
             try
@@ -68,6 +68,7 @@ namespace QueenMasterVisio.Core.Managers
             shape.CellsU["ConFixedCode"].FormulaU = "2";
             shape.CellsU["ConLineRouteExt"].FormulaU = "0";
             shape.CellsU["ConLineRouteExt"].FormulaU = "1";
+            
 
            
 
@@ -106,8 +107,11 @@ namespace QueenMasterVisio.Core.Managers
                 (short)Visio.VisSectionIndices.visSectionProp,
                 row,
                 (short)Visio.VisCellIndices.visCustPropsValue
-            ].FormulaU = "";
+            ].FormulaU = "=INDEX(0,Prop.CableType.Format)";
 
+            shape.CellsU["CompoundType"].FormulaU = "=NOT(STRSAME(Prop.CableType, \"\"))";
+            // Логика от и до (test)
+            SetIdInLine(shape);
         }
 
 
@@ -208,7 +212,16 @@ namespace QueenMasterVisio.Core.Managers
                     Visio.Master master = lineShape.Document.Masters["QueenCallout"];
                     Visio.Shape shape = lineShape.Document.Application.ActivePage.Drop(master, (double)lineShape.CellsU["EndX"].ResultIU, (double)lineShape.CellsU["EndY"].ResultIU);
 
-                    shape.Text = $"={activePlanCode[0]}{nameValue} & \n Sheet.{lineID}!Prop.CableType";
+                    //shape.Text = $"={activePlanCode[0]}{nameValue} & \n Sheet.{lineID}!Prop.CableType";
+                    //shape.Text = $"{activePlanCode[0]}{nameValue}";
+
+
+                    Visio.Characters shapeChars = shape.Characters;
+                    shapeChars.Text = "";
+                    string formula = $"=\"{activePlanCode[0]}{nameValue}\" & IF(STRSAME(Sheet.{lineID}!Prop.CableType, \"\"), \"\", CHAR(10) & Sheet.{lineID}!Prop.CableType)";
+                    shapeChars.AddCustomFieldU(formula, 0);
+
+
                     // Если распределительная коробка 
                     if (connectedShape.Name.Contains("Box"))
                         shape.Text = activePlanCode[0] + "J" + nameValue;
@@ -219,12 +232,11 @@ namespace QueenMasterVisio.Core.Managers
 
                         shape.SetUserCell("NearestParam", "");
                         shape.SetUserCell("NearestPNT", "");
-                        shape.CellsU["User.X"].FormulaU = "=IF(Controls.End>PNTX(User.NearestPNT),1,-1)";
+                        shape.CellsU["User.X"].FormulaU = "=IF((Controls.End+400)-(PNTX(User.NearestPNT)+400),1,-1)";
                         shape.CellsU["User.NearestParam"].FormulaU = $"=0.04+NEARESTPOINTONPATH(Sheet.{lineID}!Geometry1.Path,PNTX(LOCTOLOC(PNT(Controls.End,Controls.End.Y),Width,Sheet.{lineID}!Width)),PNTY(LOCTOLOC(PNT(Controls.End,Controls.End.Y),Width,Sheet.{lineID}!Width)))";
                         shape.CellsU["User.NearestPNT"].FormulaU = $"=LOCTOPAR(PNT(PNTX(POINTALONGPATH(Sheet.{lineID}!Geometry1.Path,User.NearestParam)) - PinX,PNTY(POINTALONGPATH(Sheet.{lineID}!Geometry1.Path,User.NearestParam))- PinY),Sheet.{lineID}!Width,ThePage!PageWidth)";
-                        Debug.WriteLine($"LockCalcWH: {shape.CellsU["LockCalcWH"].ResultIU}");
 
-                        
+
                         short section = (short)Visio.VisSectionIndices.visSectionFirstComponent; // Geometry1
                         short row = 1; // первая строка (MoveTo)
 
@@ -234,8 +246,8 @@ namespace QueenMasterVisio.Core.Managers
                         shape.CellsU["LockMoveX"].FormulaU = "1";
                         shape.CellsU["LockMoveY"].FormulaU = "1";
 
-                        shape.CellsU["PinX"].FormulaU = $"=Sheet.{lineShape.ID}!PinX";
-                        shape.CellsU["PinY"].FormulaU = $"=Sheet.{lineShape.ID}!PinY";
+                        shape.CellsU["PinX"].FormulaU = $"GUARD(Sheet.{lineID}!EndX)";
+                        shape.CellsU["PinY"].FormulaU = $"GUARD(Sheet.{lineID}!EndY)";
                     }
                     catch
                     {
