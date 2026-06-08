@@ -345,13 +345,35 @@ namespace QueenMasterVisio.Core.Handlers
 
 
                                 newCable.SetFormula("Prop.Name", $"=IFERROR(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.Way, \"NIL\")",true);
-                                newCable.SetFormula("Prop.Device", $"=IFERROR(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.To,\"NIL\")",true);
-                                newCable.SetFormula("Prop.type", $"=IFERROR(SUBSTITUTE(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.OverCable,\" Cat 5E\",\"\",1),\"NIL\")",true);
+                                
+                                newCable.SetFormula("Prop.Device", $"=IFERROR(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.To,\"NIL\")", true);
+
+                                newCable.SetFormula("Prop.type", $"=IFERROR(SUBSTITUTE(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.OverCable,\" Cat 5E\",\"\",1),\"NIL\")", true);
                                 //newCable.SetFormula("Prop.type", $"=Pages[{shape.ContainingPageID}]!Sheet.{line.ID}!User.Way");
 
                                 newCable.SetFormula("Prop.Name.Invisible", "1");
                                 newCable.SetFormula("Prop.Device.Invisible", "1");
                                 newCable.SetFormula("Prop.type.Invisible", "1");
+
+                                if (line.GetCellFormulaU("User.Way")[0] == 'R')
+                                {
+                                    newCable = page.Drop(masterCable, x, y);
+                                    x += 0.3f;
+
+                                    newCable.SetUserCell("BindingLine", line.NameU);
+
+
+                                    newCable.SetFormula("Prop.Name", $"=IFERROR(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.Way, \"NIL\")", true);
+
+                                    newCable.SetFormula("Prop.Device", $"=IFERROR(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.To,\"NIL\")", true);
+
+                                    newCable.SetFormula("Prop.type", $"3x1.5");
+                                    //newCable.SetFormula("Prop.type", $"=Pages[{shape.ContainingPageID}]!Sheet.{line.ID}!User.Way");
+
+                                    newCable.SetFormula("Prop.Name.Invisible", "1");
+                                    newCable.SetFormula("Prop.Device.Invisible", "1");
+                                    newCable.SetFormula("Prop.type.Invisible", "1");
+                                }
 
                             }
 
