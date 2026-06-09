@@ -101,7 +101,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
                 {
 
                     Array gluedShapes = _cable.GluedShapes((short)Visio.VisGluedShapesFlags.visGluedShapesAll1D, "", null);
-                    if (gluedShapes.Length == 0 && !cable.code.Contains("R"))
+                    if (gluedShapes.Length == 0 && !cable.way.Contains("R"))
                     {
                         yield return new ValidationResult
                         {
@@ -116,7 +116,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
 
                     // Еще проверка наследуется ли он от правильного мастера
 
-                    if (cable.deviceName.Length <= 1 || cable.code.Length <= 1)
+                    if (cable.deviceName.Length <= 1 || cable.way.Length <= 1)
                     {
                         yield return new ValidationResult
                         {
@@ -124,7 +124,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
                             TargetPage = page,
                             TargetShape = _cable,
                             Severity = ResultSeverity.Error,
-                            Message = "Кабель имеет невалидные значения: " + cable.deviceName + " || " + cable.code,
+                            Message = "Кабель имеет невалидные значения: " + cable.deviceName + " || " + cable.way,
                         };
                     }
                     else
@@ -139,7 +139,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
                                 TargetPage = page,
                                 TargetShape = _cable,
                                 Severity = ResultSeverity.Info,
-                                Message = "Кабель " + cable.deviceName + " " + cable.type + " " + cable.code + " не может быть опознан, но учтен",
+                                Message = "Кабель " + cable.deviceName + " " + cable.type + " " + cable.way + " не может быть опознан, но учтен",
                             };
                             isFinded = true;
                             goto Finish;
@@ -154,7 +154,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
                                 foreach (Shape _shape in _cables)
                                 {
                                     Cable newcable = new Cable(_shape);
-                                    if (cable.code == newcable.code && cable.type == newcable.type)
+                                    if (cable.way == newcable.way && cable.type == newcable.type)
                                     {
                                         yield return new ValidationResult
                                         {
@@ -162,7 +162,7 @@ namespace QueenMasterVisio.DeviceControl.Rules
                                             TargetPage = page,
                                             TargetShape = _cable,
                                             Severity = ResultSeverity.Info,
-                                            Message = "Кабель " + cable.deviceName + " " + cable.type + " " + cable.code + " найден на странице: " + _page.Name.Replace("\"", ""),
+                                            Message = "Кабель " + cable.deviceName + " " + cable.type + " " + cable.way + " найден на странице: " + _page.Name.Replace("\"", ""),
                                         };
                                         isFinded = true;
                                         goto Finish;

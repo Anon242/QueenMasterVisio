@@ -231,6 +231,7 @@
     <Compile Include="Core\Models\Cable.cs" />
     <Compile Include="Core\Models\WireService.cs" />
     <Compile Include="Core\Services\BackgroundWorker.cs" />
+    <Compile Include="Core\Services\CableAutoDeviceService.cs" />
     <Compile Include="Core\Services\CableService.cs" />
     <Compile Include="Core\Handlers\RibbonCommandHandler.cs" />
     <Compile Include="Core\Helpers\VisioExtensions.cs" />

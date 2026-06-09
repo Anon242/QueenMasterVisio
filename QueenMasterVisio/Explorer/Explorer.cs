@@ -290,16 +290,12 @@ namespace QueenMasterVisio
         {
             try
             {
-                Debug.WriteLine(nameU);
                 if (!titleList.Any(title => nameU.Contains(title)))
                 {
-                    Debug.WriteLine(nameU);
-
                     Visio.Page targetPage = visioApp.ActiveDocument.Pages.ItemU[nameU];
                     if (visioApp.ActiveWindow.Page != targetPage)
                     {
                         visioApp.ActiveWindow.Page = targetPage;
-                        //visioApp.ActiveWindow.Page.Application.ActiveWindow.SetViewRect(0, 12, 13, 13);
                     }
                 }
             }

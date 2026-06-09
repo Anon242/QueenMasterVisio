@@ -281,17 +281,9 @@ namespace QueenMasterVisio.Core.Handlers
                         System.Windows.Forms.MessageBox.Show("Страница не привязана", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         break;
                     }
-                    
-                    // Надо только один раз открыть!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-                  
-                    Microsoft.Office.Interop.Visio.Master masterCable = Globals.ThisAddIn.sourceStencil.Masters.get_ItemU("Cable");
-                    Microsoft.Office.Interop.Visio.Master masterABCD = Globals.ThisAddIn.sourceStencil.Masters.get_ItemU("ABCD");
+                 
 
                     List<Shape> shapes = new List<Shape>();
-
-                    // Получить с странциы все девайсо страницы
-                    // Пройтись по каждому, получить их да да нет нет px ax и тд
 
                     foreach (string item in deviceList.Split(';'))
                     {
@@ -320,61 +312,38 @@ namespace QueenMasterVisio.Core.Handlers
                         }
                     }
                     float x = 0f;
-                    float y = -0.6f;
+                    float y = 0f;
                     foreach (Shape shape in shapes)
                     {
-                        
-                        
                         var lines = new List<Visio.Shape>();
 
                         foreach (Visio.Connect conn in shape.FromConnects)
                         {
                             Visio.Shape line = null;
-                            if (conn.FromSheet.OneD != 0) line = conn.FromSheet;
-                            else if (conn.ToSheet.OneD != 0) line = conn.ToSheet;
+                            if (conn.FromSheet.OneD != 0)
+                                line = conn.FromSheet;
+                            
+                            else
+                                continue;
 
                             if (exLines.Contains(line.NameU))
                                 continue;
 
                             if (line != null && !lines.Contains(line))
                             {
-                                Shape newCable = page.Drop(masterCable, x, y);
-                                x += 0.3f;
-
-                                newCable.SetUserCell("BindingLine",line.NameU);
-
-
-                                newCable.SetFormula("Prop.Name", $"=IFERROR(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.Way, \"NIL\")",true);
-                                
-                                newCable.SetFormula("Prop.Device", $"=IFERROR(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.To,\"NIL\")", true);
-
-                                newCable.SetFormula("Prop.type", $"=IFERROR(SUBSTITUTE(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.OverCable,\" Cat 5E\",\"\",1),\"NIL\")", true);
-                                //newCable.SetFormula("Prop.type", $"=Pages[{shape.ContainingPageID}]!Sheet.{line.ID}!User.Way");
-
-                                newCable.SetFormula("Prop.Name.Invisible", "1");
-                                newCable.SetFormula("Prop.Device.Invisible", "1");
-                                newCable.SetFormula("Prop.type.Invisible", "1");
-
+                                // Если RX
                                 if (line.GetCellFormulaU("User.Way")[0] == 'R')
                                 {
-                                    newCable = page.Drop(masterCable, x, y);
-                                    x += 0.3f;
+                                    CableAutoDeviceService.DropAutoABCDInLine(page, shape, line, 1f, -2f);
 
-                                    newCable.SetUserCell("BindingLine", line.NameU);
-
-
-                                    newCable.SetFormula("Prop.Name", $"=IFERROR(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.Way, \"NIL\")", true);
-
-                                    newCable.SetFormula("Prop.Device", $"=IFERROR(Pages[{shape.ContainingPage.NameU}]!Sheet.{line.ID}!User.To,\"NIL\")", true);
-
-                                    newCable.SetFormula("Prop.type", $"3x1.5");
-                                    //newCable.SetFormula("Prop.type", $"=Pages[{shape.ContainingPageID}]!Sheet.{line.ID}!User.Way");
-
-                                    newCable.SetFormula("Prop.Name.Invisible", "1");
-                                    newCable.SetFormula("Prop.Device.Invisible", "1");
-                                    newCable.SetFormula("Prop.type.Invisible", "1");
+                                    CableAutoDeviceService.DropAutoCableInLine(page, shape, line, x += 0.3f, y);
+                                    CableAutoDeviceService.DropAutoCableInLine(page, shape, line, x += 0.3f, y, true);
                                 }
-
+                                // Все остальное
+                                else
+                                {
+                                    CableAutoDeviceService.DropAutoCableInLine(page, shape, line, x += 0.3f, y);
+                                }
                             }
 
                         }

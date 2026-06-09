@@ -149,7 +149,7 @@ namespace QueenMasterVisio
         {
             SafeExecute(() =>
             {
-                // Здесь можно добавить код для корректного завершения работы надстройки
+                //  код для завершения работы 
             }, "Shutdown");
         }
 
@@ -167,12 +167,12 @@ namespace QueenMasterVisio
                 return;
 
             docName = doc.FullName;
-
+            
             SafeExecute(() =>
             {
 
                 System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
-                timer.Interval = 6000;
+                timer.Interval = 4000;
                 timer.Tick += (s, e) =>
                 {
                     timer.Stop();
