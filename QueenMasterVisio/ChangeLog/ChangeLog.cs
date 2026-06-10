@@ -14,17 +14,18 @@ namespace QueenMasterVisio.ChangeLog
 {
     public partial class ChangeLog : UserControl
     {
+        Microsoft.Office.Interop.Visio.Application app;
 
         private string changeLogPath = "";
         private Microsoft.Office.Interop.Visio.Window myWindow;
-        Microsoft.Office.Interop.Visio.Application app;
-
+        private DateTime date;
         public ChangeLog(Microsoft.Office.Interop.Visio.Window window,Microsoft.Office.Interop.Visio.Application app, string changeLogPath)
         {
             InitializeComponent();
             this.myWindow = window;
             this.changeLogPath = changeLogPath;
             this.app = app;
+            this.date = DateTime.Now;
         }
 
 
@@ -44,7 +45,7 @@ namespace QueenMasterVisio.ChangeLog
             ChangeModel model = new ChangeModel();
             model.name = textBox1.Text;
             model.description = richTextBox1.Text;
-            model.date = DateTime.Now; // .ToString("yyyyMMdd_HHmm")
+            model.date = date;
             model.author = app.UserName;
 
             string fileName = "Changelog_" + model.author +"_" + model.date.ToString("yyyyMMdd_HHmm");
